@@ -18,7 +18,7 @@ const server = new Hapi.Server({
 
 server.connection({ 
     host: 'localhost', 
-    port: 3000 
+    port: 80 
 });
 
 var consolidate = function() {
