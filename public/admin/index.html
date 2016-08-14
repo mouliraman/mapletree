@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp" ng-controller="mainCtrl">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Maple Tree</title>
+
+    <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="google-plus-signin.css" />
+
+    <meta name="google-signin-client_id" content="586562768921-kjkhej5uribmfmtdvrb5nf09pm3f4m6q.apps.googleusercontent.com">
+
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="header clearfix">
+
+        <nav>
+
+        <div ng-if="current_user" class="dropdown pull-right">
+        <a href="#" class="btn btn-success dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Account <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          <li><a ng-click="navigateTo('inventory')" href="#">Inventory</a></li>
+          <li><a ng-click="navigateTo('orders')" href="#">Orders</a></li>
+          <li><a ng-click="navigateTo('communities')" href="#">Communities</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a ng-click="signOut()" href="#">Logout</a></li>
+        </ul>
+        </div>
+
+
+        <ul ng-if="!current_user" class="nav nav-pills pull-right">
+          <li>
+          <google-sign-in-button button-id="uniqueid" options="options"></google-sign-in-button>
+          </li>
+        </ul>
+        </nav>
+
+        <h3 class="text-muted"><a href="#" ng-click="navigateTo('order-page')">Maple Tree</a></h3>
+      </div>
+    
+      <div ng-if="!app_loaded" class="jumbotron">
+        <img src="/images/gears.svg" />
+      </div>
+
+      <div ng-if="app_loaded">
+      <!-- Not signed in user landing page -->
+
+      <div ng-if="!current_user" class="jumbotron">
+        <h1>Maple Tree Fresh Produce</h1>
+        <p class="lead">Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+        <p><a class="btn btn-lg btn-success" href="#" role="button">Sign up today</a></p>
+        <!--<google-sign-in-button class="btn btn-lg btn-success" button-id="uniqueid" options="options"></google-sign-in-button>-->
+      </div>
+
+      <div ng-if="current_user" class="row">
+
+        <!-- Dashboard when user logs in -->
+        <div ng-if="nav == 'inventory'" id="order-page">
+          <div class="page-header">
+            <h1>Fresh Produce</h1>
+          </div>
+          <table ng-if="loaded" st-table="skus" class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Description</th>
+                <th>Rate</th>
+                <th>Unit</th>
+                <th>Available?</th>
+                <th></th>
+              </tr>
+            </thead> 
+            <tbody>
+              <tr ng-repeat="row in skus" class="{danger: (row.order > 0)}">
+                <td>{{$index+1}}</td>
+                <td>{{row.description}}</td>
+                <td>{{row.rate}}</td>
+                <td>{{row.unit}}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+            </tfoot>
+          </table>
+          <a href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Shopping Cart</a>
+
+        </div>
+
+
+        <div ng-if="nav == 'shopping-cart'" id="shopping-cart">
+          <div class="page-header">
+            <h1>Shopping Cart</h1>
+          </div>
+
+        </div>
+
+        <div ng-if="nav == 'orders'" id="orders">
+          <div class="page-header">
+            <h1>My Orders</h1>
+          </div>
+        </div>
+
+        <div ng-if="nav == 'preferences'" id="preferences">
+          <div class="page-header">
+            <h1>Preferences</h1>
+          </div>
+        </div>
+
+      </div>
+      </div>
+
+      <footer class="footer">
+      <p class="pull-right">v1.0</p>
+      <p>© 2016 Mayank Sharma</p>
+      </footer>
+
+    </div>
+
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
+    <script src="/admin/script.js"></script>
+    <script src="smart-table.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+ 
+  </body>
+
+</html>
