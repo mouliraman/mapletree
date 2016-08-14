@@ -16,10 +16,7 @@ const server = new Hapi.Server({
                }
 });
 
-server.connection({ 
-    host: 'localhost', 
-    port: 80 
-});
+server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
 
 var consolidate = function() {
   var totalOrder = [];
