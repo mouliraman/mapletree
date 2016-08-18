@@ -1,42 +1,66 @@
 var Fs = require('fs');
-var gcloud = require('gcloud');
+var storage = require('@google-cloud/storage');
 
-function Db(completeCallback) {
-  this.db_file = 'public/data/database.json';
-  this.gcs = gcloud.storage({projectId: 'maple-tree-app', keyFilename:'./maple-gce.json'})
-  this.bucket = this.gcs.bucket('maple-tree-app.appspot.com');
-  this.bucket_file = this.bucket.file('database.json');
+function Db(cloud_storage) {
+  if (cloud_storage) {
+    this.gcs = storage({projectId: 'maple-tree-app', keyFilename:'./maple-gce.json'});
+    this.bucket = this.gcs.bucket('maple-tree-app.appspot.com');
+    this.bucket_file = this.bucket.file('database.json');
+  } else {
+    this.db_file = 'public/data/database.json';
+  }
 
-  //if (Fs.existsSync(this.db_file)) {
-  //  var buf = Fs.readFileSync(this.db_file);
-  //  this.data = JSON.parse(buf.toString());
-  //} 
-  var self = this;
-  this.bucket_file.exists(function(err, exists) {
-    if (!err) {
-      if (exists) {
-        self.bucket_file.download(function(err, contents) {
-          if (!err) {
-            self.data = JSON.parse(contents.toString());
-          }
-          completeCallback();
-        });
-      } else {
-        self.data = {users: [], orders: {all: [], user: {}, community: {}}};
-        completeCallback();
-      }
+  this.load_fs = function(completeCallback) {
+    if (Fs.existsSync(this.db_file)) {
+      var buf = Fs.readFileSync(this.db_file);
+      this.data = JSON.parse(buf.toString());
     }
-  });
-  //if (this.data == null) {
-  //  this.data = {users: [], orders: {all: [], user: {}, community: {}}};
-  //}
 
-  this.save = function(completeCallback) {
-    this.bucket_file.save(JSON.stringify(this.data), function (err) {
-      completeCallback();
+    if (this.data == null) {
+      this.data = {users: [], orders: {all: [], user: {}, community: {}}};
+    }
+    return completeCallback(null);
+  }
+
+  this.load_cloud = function(completeCallback) {
+    var self = this;
+    this.bucket_file.exists(function(err, exists) {
+      if (!err) {
+        if (exists) {
+          self.bucket_file.download(function(err, contents) {
+            if (!err) {
+              self.data = JSON.parse(contents.toString());
+            }
+            return completeCallback(err);
+          });
+        } else {
+          self.data = {users: [], orders: {all: [], user: {}, community: {}}};
+          return completeCallback(null);
+        }
+      } else {
+        return completeCallback(err);
+      }
     });
-    //Fs.writeFileSync(this.db_file,JSON.stringify(this.data));
+  }
+
+  this.save_fs = function(completeCallback) {
+    Fs.writeFileSync(this.db_file,JSON.stringify(this.data));
+    return completeCallback(null);
+  }
+
+  this.save_cloud = function(completeCallback) {
+    this.bucket_file.save(JSON.stringify(this.data), function (err) {
+      completeCallback(err);
+    });
     return true;
+  }
+
+  if (cloud_storage) {
+    this.load = this.load_cloud;
+    this.save = this.save_cloud;
+  } else {
+    this.load = this.load_fs;
+    this.save = this.save_fs;
   }
 
   this.getUser = function(id) {
