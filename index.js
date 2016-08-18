@@ -19,16 +19,14 @@ const server = new Hapi.Server({
 
 server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
 
-const db = new Db(function () {console.log('init')});
+const db = new Db();
 
 // get profile information about the user
 server.route({method: 'GET', path:'/data/users/{uid}.json', handler: function(req, reply) {
   console.log('getting user with id ' + req.params.uid);
   var u = db.getUser(req.params.uid);
   if (u) {
-    setTimeout(function () {
     reply({status: 'success', profile: u});
-    }, 5000);
   } else {
     reply({status: 'failed', reason: 'not found'});
   }
