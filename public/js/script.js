@@ -3,67 +3,108 @@ angular.module('myApp', ['smart-table'])
     function ($scope, $http, $filter) {
 
       $scope.nav = 'order-page';
+      $scope.loaded = 0;
       $scope.new_user = true;
       $scope.app_loaded = true;
 
-      $scope.options = {
-        'onsuccess': function(response) {
-          console.log('onsuccess called');
-          var profile = response.getBasicProfile();
-          $scope.$apply(function() {
-            $scope.current_user = {id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()};
-          });
-          $http.get('data/' + profile.getId() + '/profile.json').then(function(response) {
-            $scope.current_user = response.data;
+      /* On login, the following sequence is executed
+       *   1. get profile of the user
+       *   2. get community information
+       *   3. get inventory list
+       *   4. If profile exist
+       *      1. set the current_community
+       *      2. get orders for this user
+       *   5. If profile does not exist
+       *      1. set new_user = true
+       *
+       */
 
-            $http.get('/data/communities.json').success(function(data) {
+      $scope.onGoogleLogin = function(response) {
+        console.log('onGoogleLogin');
+        var profile = response.getBasicProfile();
+        $scope.current_user = {id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()};
+        $http.get('/data/users/' + profile.getId() + '.json').success($scope.onProfle);
+        $scope.app_loaded = false;
+      }
 
-              $scope.communities = data;
+      $scope.onProfle = function(data) {
+        console.log('onProfle');
+        if (data.status == 'success') {
+          $scope.current_user = data.profile;
+          $scope.new_user = false;
+          console.log('user is registered');
+        }
+        $http.get('/data/communities.json').success($scope.onCommunityInformation);
+      }
 
-              if (typeof($scope.current_user.mobile) != 'undefined') {
+      $scope.onCommunityInformation = function (data) {
+        console.log('onCommunityInformation');
+        $scope.communities = data;
 
-                for (var i=0;i<$scope.communities.length;i++) {
-                  var c = $scope.communities[i];
-                  if (c.name == $scope.current_user.community) {
-                    $scope.current_community = c;
-                    break;
-                  }
-                }
-
-                if ($scope.current_community) {
-
-                  $scope.new_user = false;
-
-                  $http.get('/data/data.json').success(function(data) {
-
-                    $scope.loaded = 1;
-                    $scope.skus = data;
-
-                    for (var i=0;i<$scope.skus.length;i++) {
-                      $scope.skus[i].quantity = 0;
-                      $scope.skus[i].price = 0;
-                    }
-
-                  });
-                }
-              }
-              if ($scope.new_user) {
-                $scope.navigateTo('preferences');
-              }
-            });
-
-          }, function(res) {
-            if (res.status == 404) {
-              $http.post('/data/' + profile.getId() + '/profile.json', $scope.current_user);
+        if (!$scope.new_user) {
+          for (var i=0;i<$scope.communities.length;i++) {
+            var c = $scope.communities[i];
+            if (c.name == $scope.current_user.community) {
+              $scope.current_community = c;
+              $scope.set_order_id();
+              break;
             }
-          });
-        },
+          }
+
+          if ($scope.current_community == null) {
+            console.log('could not fetch the community');
+            $scope.new_user = true;
+          }
+        }
+
+        if (!$scope.new_user) {
+          $http.get('/data/data.json').success($scope.onInventory);
+        } else {
+          $scope.app_loaded = true;
+          $scope.navigateTo('preferences');
+        }
+      }
+
+      $scope.onInventory = function (data) {
+        console.log('onInventory');
+        $scope.loaded = 1;
+        $scope.skus = [];
+
+        for (var i=0;i<data.length;i++) {
+          var d = data[i];
+          if ((d.description.length > 0) && (d.available.toLowerCase() == 'yes')) {
+            d.quantity = 0;
+            d.price = 0;
+            $scope.skus.push(d);
+          }
+        }
+
+        // Get user order
+        $http.get('/data/orders/' + $scope.order_id + '/user.json?uid=' + $scope.current_user.id).success($scope.onUserOrders);
+
+      }
+
+      $scope.onUserOrders = function (data) {
+        console.log('onUserOrders');
+        for (var i = 0;i<data.length;i++) {
+          for (var j = 0;i<$scope.skus.length;j++) {
+            if ($scope.skus[j].description == data[i].description) {
+              $scope.skus[j].quantity = data[i].quantity;
+              $scope.skus[j].price = data[i].price;
+              break;
+            }
+          }
+        }
+        $scope.navigateTo('order-page');
+        $scope.app_loaded = true;
+      }
+
+      $scope.options = {
+        'onsuccess': $scope.onGoogleLogin,
         'onfailure': function(response) {
           console.log('failed to login');
         }
       }
-
-      $scope.loaded = 0;
 
       $scope.$on('event:google-plus-signin-success', function (event, authResult) {
         // User successfully authorized the G+ App!
@@ -75,13 +116,16 @@ angular.module('myApp', ['smart-table'])
       });
 
       $scope.registerUser = function() {
-        $http.post('/data/' + $scope.current_user.id + '/profile.json', $scope.current_user).success(function() {
-          $scope.new_user = false;
-        });
+        console.log('registerUser');
+        $http.post('/data/users/' + $scope.current_user.id + '.json', $scope.current_user).success($scope.onProfle);
       }
 
       $scope.navigateTo = function(dest) {
-        $scope.nav = dest;
+        if (!$scope.new_user) {
+          $scope.nav = dest;
+        } else {
+          $scope.nav = 'preferences';
+        }
       }
 
       $scope.current_order = function () {
@@ -95,7 +139,12 @@ angular.module('myApp', ['smart-table'])
       }
 
       $scope.submitOrder = function() {
-        $http.post('/data/' + $scope.current_user.id + '/order.json', $scope.current_order());
+        $('#loadingModel').modal('show');
+        $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id, $scope.current_order()).success(function () {
+          $('#loadingModel').modal('hide');
+          $scope.warning_message = $scope.error_message = null;
+          $scope.success_message = "Congratulations !! Your order has been placed";
+        });
       }
 
       $scope.signOut = function() {
@@ -104,6 +153,8 @@ angular.module('myApp', ['smart-table'])
           console.log('User signed out.');
           $scope.$apply(function () {
             $scope.current_user = null;
+            $scope.current_community = null;
+            $scope.skus = [];
           });
         });
       }
@@ -115,6 +166,57 @@ angular.module('myApp', ['smart-table'])
           ret += skus[i].quantity * skus[i].rate ;
         }
         return ret;
+      }
+
+      $scope.set_order_id = function () {
+        var weekday = ['sunday', 'monday','tuesday','wednesday','thursday','friday','saturday'];
+
+        var d = new Date(); // today's date
+        var w = $scope.current_community.order_window.end.day_of_week;
+        var weekday_index = weekday.indexOf(w);
+        var diff = weekday_index - d.getDay();
+        if (diff < 0) {
+          diff += 7;
+        }
+        d.setDate(d.getDate()+diff);
+        $scope.order_id = [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
+        $scope.check_if_shop_is_open();
+      }
+
+      $scope.check_if_shop_is_open = function () {
+        var weekday = ['sunday', 'monday','tuesday','wednesday','thursday','friday','saturday'];
+        var d = new Date(); // today's date
+        var open_day = $scope.current_community.order_window.start.day_of_week;
+        var close_day = $scope.current_community.order_window.end.day_of_week;
+        var open_day_index = weekday.indexOf(open_day);
+        var close_day_index = weekday.indexOf(close_day);
+        var current_day_index = d.getDay();
+
+        if (open_day_index == current_day_index) {
+          // The shop is open today. But are you early?
+          $scope.warning_message = "The shopping window has opened today. Place order before end of window";
+          console.log("same day as opening day");
+          return;
+        }
+
+        if (close_day_index == current_day_index) {
+          // The shop will close today. Are you late?
+          $scope.warning_message = "The shopping window is closing today. Place order before " + $scope.current_community.order_window.end.time ;
+          console.log("same day as closing day");
+          return;
+        }
+
+        // set open_day as zero
+        close_day_index = (close_day_index - open_day_index + 7) % 7;
+        current_day_index = (current_day_index - open_day_index + 7) % 7;
+        if (current_day_index < close_day_index) {
+          // Phew.. we have time to order
+          console.log('can place order');
+        } else {
+          $scope.error_message = "The shopping window is not open. You cannot place an order.";
+          console.log('cannot place order');
+          // Sorry. You need to wait for couple of days
+        }
       }
 
     }

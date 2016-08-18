@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp" ng-controller="mainCtrl">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Mapletree Farms</title>
+
+    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/google-plus-signin.css" />
+
+    <meta name="google-signin-client_id" content="586562768921-kjkhej5uribmfmtdvrb5nf09pm3f4m6q.apps.googleusercontent.com">
+
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="header clearfix">
+
+        <nav>
+        <!--
+        <ul ng-if="current_user" class="nav nav-pills pull-right">
+          <li role="presentation" ng-class="{'active': nav == 'order-page'}"><a ng-click="navigateTo('order-page')" href="#">Fresh Produce</a></li>
+          <li role="presentation" ng-class="{'active': nav == 'shopping-cart'}"><a ng-click="navigateTo('shopping-cart')" href="#">Shopping Cart</a></li>
+          <li role="presentation" ng-class="{'active': nav == 'orders'}"><a ng-click="navigateTo('orders')" href="#">Orders</a></li>
+          <li role="presentation" ng-class="{'active': nav == 'preferences'}"><a ng-click="navigateTo('preferences')" href="#">Preferences</a></li>
+          <li role="presentation"><a href="#" ng-click="signOut()">Logout</a></li>
+        </ul>
+        -->
+
+        <div ng-if="current_user" class="dropdown pull-right">
+        <a href="#" class="btn btn-success dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Account <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          <li><a ng-class="{'disabled': new_user}" ng-click="navigateTo('shopping-cart')" href="#">Shopping Cart</a></li>
+          <li><a ng-click="navigateTo('orders')" href="#">My Orders</a></li>
+          <li><a ng-click="navigateTo('preferences')" href="#">Preferences</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a ng-click="signOut()" href="#">Logout</a></li>
+        </ul>
+        </div>
+
+
+        <ul ng-if="!current_user" class="nav nav-pills pull-right">
+          <li>
+          <google-sign-in-button button-id="uniqueid" options="options"></google-sign-in-button>
+          </li>
+        </ul>
+        </nav>
+
+        <h3 class="text-muted"><a href="#" ng-click="navigateTo('order-page')">Mapletree Farms</a></h3>
+      </div>
+    
+      <div ng-if="!app_loaded" class="jumbotron">
+        <img src="/images/gears.svg" />
+      </div>
+
+      <div ng-if="app_loaded">
+      <!-- Not signed in user landing page -->
+
+      <div ng-if="!current_user" class="jumbotron">
+        <h1>Mapletree Fresh Produce</h1>
+        <p class="lead">Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+        <p><a class="btn btn-lg btn-success" href="#" role="button">Sign up today</a></p>
+        <!--<google-sign-in-button class="btn btn-lg btn-success" button-id="uniqueid" options="options"></google-sign-in-button>-->
+      </div>
+
+      <div ng-if="current_user" class="row">
+
+        <div ng-if="error_message" class="alert alert-danger">
+          <p>{{error_message}}</p>
+        </div>
+
+        <div ng-if="!error_message && warning_message" class="alert alert-warning">
+          <p>{{warning_message}}</p>
+        </div>
+
+        <div ng-if="!error_message && !warning_message && success_message" class="alert alert-success">
+          <p>{{success_message}}</p>
+        </div>
+
+        <!-- Dashboard when user logs in -->
+        <div ng-if="nav == 'order-page'" id="order-page">
+          <div class="page-header">
+            <h1>Fresh Produce</h1>
+          </div>
+          <table ng-if="loaded" st-table="skus" class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Description</th>
+                <th>Rate</th>
+                <th>Unit</th>
+                <th>Quantity</th>
+                <th class="price">Price</th>
+              </tr>
+            </thead> 
+            <tbody>
+              <tr ng-repeat="row in skus" class="{danger: (row.order > 0)}">
+                <td>{{$index+1}} <span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span></td>
+                <td>{{row.description}}</td>
+                <td>{{row.rate}}</td>
+                <td>{{row.unit}}</td>
+                <td><input type="number" class="quantity" ng-model="row.quantity"></td>
+                <td><span class="cost" ng-show="row.quantity > 0">&#8377; {{row.rate * row.quantity}}</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan=5 style="text-align: right">Total</td>
+                <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
+              </tr>
+            </tfoot>
+          </table>
+          <a href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Shopping Cart</a>
+
+        </div>
+
+
+        <div ng-if="nav == 'shopping-cart'" id="shopping-cart">
+          <div class="page-header">
+            <h1>Shopping Cart</h1>
+          </div>
+          <p ng-if="loaded && (current_order().length == 0)">You have not added any items to your shopping cart</p>
+          <table ng-if="current_order().length > 0" st-table="skus" class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Description</th>
+                <th>Rate</th>
+                <th>Unit</th>
+                <th>Quantity</th>
+                <th class="price">Price</th>
+              </tr>
+            </thead> 
+            <tbody>
+              <tr ng-repeat="row in current_order()">
+                <td>{{$index+1}}</td>
+                <td>{{row.description}}</td>
+                <td>{{row.rate}}</td>
+                <td>{{row.unit}}</td>
+                <td><span class="quantity">{{row.quantity}}</span></td>
+                <td><span class="cost">&#8377; {{row.rate * row.quantity}}</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan=5 style="text-align: right">Total</td>
+                <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
+              </tr>
+            </tfoot>
+          </table>
+          <a href="#" ng-if="(current_order().length > 0)" class="btn btn-success pull-right" ng-click="submitOrder()">Submit Order</a>
+
+
+        </div>
+
+        <div ng-if="nav == 'orders'" id="orders">
+          <div class="page-header">
+            <h1>My Orders</h1>
+          </div>
+        </div>
+
+        <div ng-if="nav == 'preferences'" id="preferences">
+          <div class="page-header">
+            <h1>Preferences</h1>
+            <div class="alert alert-success" role="alert" ng-if="new_user">
+            Welcome <strong>{{current_user.name}}</strong> to Mapletree Community. Please provide your mobile number and select your community to proceed.
+            </div>
+
+            <table ng-if="new_user" class="table table-bordered table-hover">
+              <tbody>
+                <tr>
+                  <td>Phone Number</td>
+                  <td><input type="number" ng-model="current_user.mobile"></td>
+                </tr>
+                <tr>
+                  <td>Community</td>
+                  <td>
+                    <select ng-model="current_user.community" class="form-control">
+                      <option>--- Please Select ---</option>
+                      <option ng-repeat="c in communities">{{c.name}}</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td><a class="btn btn-lg btn-success" href="#" ng-click="registerUser()">Proceed</a></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <table ng-if="!new_user" class="table table-bordered table-hover">
+              <tbody>
+                <tr>
+                  <td>Name</td>
+                  <td>{{current_user.name}}</td>
+                </tr>
+                <tr>
+                  <td>Email Address</td>
+                  <td>{{current_user.email}}</td>
+                </tr>
+                <tr>
+                  <td>Phone Number</td>
+                  <td>{{current_user.mobile}}</td>
+                </tr>
+                <tr>
+                  <td>Community</td>
+                  <td>{{current_user.community}}</td>
+                </tr>
+                <tr>
+                  <td>Address</td>
+                  <td>{{current_community.address}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      </div>
+
+      <footer class="footer">
+      <p class="pull-right">v1.0</p>
+      <p>© 2016 Mayank Sharma</p>
+      </footer>
+
+      <div class="modal fade" tabindex="-1" id="loadingModel" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+          <div class="modal-content" style="text-align: center">
+            <img src="/images/gears.svg" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--<script src="https://apis.google.com/js/platform.js" async defer></script>-->
+    <script src="https://apis.google.com/js/platform.js"></script>
+    <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
+    <script src="/js/script.js"></script>
+    <script src="/js/smart-table.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+ 
+  </body>
+
+</html>

@@ -4,6 +4,7 @@ const Path = require('path');
 const Hapi = require('hapi');
 const Inert = require('inert');
 const Fs = require('fs');
+const Db = require('./db');
 
 // Create a server with a host and port
 const server = new Hapi.Server({
@@ -18,49 +19,72 @@ const server = new Hapi.Server({
 
 server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
 
-var consolidate = function() {
-  var totalOrder = [];
-  var communityOrder = {};
+const db = new Db(function () {console.log('init')});
 
-  // Iterate through each user directory
-  fs.readDirSync(function () {
-    for (var d in dirs) {
-      if (fs.fileExists(d + '/order.json')) {
-        user = fs.eval(d + '/profile.json');
-        orders = fs.eval(d + '/order.json');
-        if (!communityOrder[user.community]) {
-          communityOrder[user.community] = [];
-        }
-        for (var o in orders) {
-          for (var oo in totalOrder) {
-            if (oo.name == o.name) {
-              oo.quantity += o.quantity;
-              added = true;
-              break;
-            }
-          }
-          if (!added) {
-            totalOrder.concat(o);
-          }
+// get profile information about the user
+server.route({method: 'GET', path:'/data/users/{uid}.json', handler: function(req, reply) {
+  console.log('getting user with id ' + req.params.uid);
+  var u = db.getUser(req.params.uid);
+  if (u) {
+    setTimeout(function () {
+    reply({status: 'success', profile: u});
+    }, 5000);
+  } else {
+    reply({status: 'failed', reason: 'not found'});
+  }
+}});
 
-          for (var oo in communityOrder[user.community]) {
-            if (oo.name == o.name) {
-              oo.quantity += o.quantity;
-              added = true;
-              break;
-            }
-          }
-          if (!added) {
-            communityOrder[user.community].concat(o);
-          }
-        }
-      }
+// register and set profile information about the user
+server.route({method: 'POST', path:'/data/users/{uid}.json', handler: function(req, reply) {
+  if (req.payload) {
+    if (db.updateUser(req.payload)) {
+      reply({status: 'success', profile: req.payload});
+    } else {
+      reply({status: 'failed', reason: 'profile does not contain all requested information'});
     }
-  });
-
-  // sync totalOrder
-  // sync communityOrder
+  } else {
+    reply({status: 'failed', reason: 'mandatory param uid and/or profile not provided'});
+  }
+}, config: {payload: {
+  output: 'data',
+  parse: true
 }
+}
+});
+
+server.route({method: 'POST', path:'/data/orders/{order_id}.json', handler: function(req, reply) {
+  if (req.payload && req.query.uid) {
+    db.storeOrder(req.query.uid, req.params.order_id, req.payload);
+    reply({status: 'success'});
+  } else {
+    reply({status: 'failed', reason: 'mandatory param uid and/or orders not provided'});
+  }
+}, config: {payload: {
+  output: 'data',
+  parse: true
+}
+}
+});
+
+server.route({method: 'GET', path:'/data/orders/all.json', handler: function(req, reply) {
+  return reply(db.getOrdersForAll());
+}});
+
+server.route({method: 'GET', path:'/data/orders/community.json', handler: function(req, reply) {
+  if (req.query.community) {
+    reply(db.getOrdersForCommunity(req.query.community));
+  } else {
+    reply({status: 'failed', reason: 'mandatory param community not provided'});
+  }
+}});
+
+server.route({method: 'GET', path:'/data/orders/{order_id}/user.json', handler: function(req, reply) {
+  if (req.query.uid) {
+    reply(db.getOrdersForUser(req.query.uid, req.params.order_id));
+  } else {
+    reply({status: 'failed', reason: 'mandatory param uid not provided'});
+  }
+}});
 
 // Add the route
 server.route({

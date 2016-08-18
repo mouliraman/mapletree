@@ -2,16 +2,16 @@
 {"name" : "Amagi Media Labs Pvt. Ltd.",
  "address" : "4th Floor, Raj Alkaa Park\nKalena Agrahara,\nBannerghatta Road\nBangalore – 560 076\nPhone: (080) – 4663 4444",
  "order_window" : {
-    "start" : "",
-    "end"   : ""
+    "start" : {"day_of_week" : "monday", "time" : "08:00"},
+    "end"   : {"day_of_week" : "wednesday", "time" : "17:00"}
   }
 },
 
 {"name" : "Brindavan Renaissance Apartment",
  "address" : "D402, Brindavan Apartment\nUttarahalli Main Road,\nSubramanyapura Main Road\nBangalore – 560 061",
  "order_window" : {
-    "start" : "",
-    "end"   : ""
+    "start" : {"day_of_week" : "wednesday", "time" : "08:00"},
+    "end"   : {"day_of_week" : "thursday", "time" : "17:00"}
   }
 }
 ]

@@ -1,11 +1,13 @@
 {
-    "name": "maple-tree",
-    "version": "0.0.1",
-    "dependencies": {
-        "hapi": "14.1.0",
-        "inert": "4.0.1"
-    },
-    "scripts": {
-        "start": "node index.js"
-    }
+  "name": "maple-tree",
+  "version": "0.0.1",
+  "dependencies": {
+    "gcloud": "^0.37.0",
+    "hapi": "14.1.0",
+    "inert": "4.0.1",
+    "lokijs": "^1.4.1"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
 }
