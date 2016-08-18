@@ -1,8 +1,8 @@
 var Fs = require('fs');
-var storage = require('@google-cloud/storage');
 
 function Db(cloud_storage) {
   if (cloud_storage) {
+    var storage = require('@google-cloud/storage');
     this.gcs = storage({projectId: 'maple-tree-app', keyFilename:'./maple-gce.json'});
     this.bucket = this.gcs.bucket('maple-tree-app.appspot.com');
     this.bucket_file = this.bucket.file('database.json');
@@ -45,12 +45,17 @@ function Db(cloud_storage) {
 
   this.save_fs = function(completeCallback) {
     Fs.writeFileSync(this.db_file,JSON.stringify(this.data));
-    return completeCallback(null);
+    if (completeCallback) {
+      return completeCallback(null);
+    }
+    return true;
   }
 
   this.save_cloud = function(completeCallback) {
     this.bucket_file.save(JSON.stringify(this.data), function (err) {
-      completeCallback(err);
+      if (completeCallback) {
+        completeCallback(err);
+      }
     });
     return true;
   }
@@ -61,6 +66,7 @@ function Db(cloud_storage) {
   } else {
     this.load = this.load_fs;
     this.save = this.save_fs;
+    this.load(function() {console.log('file loaded')});
   }
 
   this.getUser = function(id) {
