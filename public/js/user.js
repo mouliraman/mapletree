@@ -62,8 +62,6 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
           }
         }
 
-        console.log($scope.communities);
-
         if ($scope.current_community == null) {
           console.log('could not fetch the community');
           $scope.new_user = true;
@@ -78,9 +76,10 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       }
 
       $scope.onInventory = function (data) {
-        console.log('onInventory');
         $scope.loaded = 1;
         $scope.skus = [];
+        $scope.category_skus = {};
+        $scope.categories = [];
 
         for (var i=0;i<data.length;i++) {
           var d = data[i];
@@ -88,6 +87,12 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
             d.quantity = 0;
             d.price = 0;
             $scope.skus.push(d);
+            if ($scope.category_skus[d.category]) {
+              $scope.category_skus[d.category].push(d);
+            } else {
+              $scope.category_skus[d.category] = [d];
+              $scope.categories.push(d.category);
+            }
           }
         }
 

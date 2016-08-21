@@ -88,34 +88,48 @@
           <div class="page-header">
             <h1>Fresh Produce</h1>
           </div>
-          <table ng-if="loaded" st-table="skus" class="table table-bordered table-hover">
-            <thead>
-              <tr>
-                <th></th>
-                <th>Description</th>
-                <th>Rate</th>
-                <th>Unit</th>
-                <th ng-if="shop_open">Quantity</th>
-                <th ng-if="shop_open" class="price">Price</th>
-              </tr>
-            </thead> 
-            <tbody>
-              <tr ng-repeat="row in skus" ng-class="{success: (row.quantity > 0)}">
-                <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
-                <td>{{row.description}}</td>
-                <td>{{row.rate}}</td>
-                <td>{{row.unit}}</td>
-                <td ng-if="shop_open"><input type="number" class="quantity" ng-model="row.quantity"></td>
-                <td ng-if="shop_open"><span class="cost" ng-show="row.quantity > 0">&#8377; {{row.rate * row.quantity}}</span></td>
-              </tr>
-            </tbody>
-            <tfoot ng-if="shop_open">
-              <tr>
-                <td colspan=5 style="text-align: right">Total</td>
-                <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
-              </tr>
-            </tfoot>
-          </table>
+
+          <ul class="nav nav-tabs" role="tablist">
+            <li ng-repeat="c in categories" role="presentation" ng-class="{'active': $index == 0}">
+            <a href="#category-{{$index}}" aria-controls="category-{{$index}}" role="tab" data-toggle="tab">{{c}}</a>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <div ng-repeat="c in categories" ng-class="{'active': $index == 0}" role="tabpanel" class="tab-pane" id="category-{{$index}}">
+              <h4>{{c}}</h4>
+
+              <table ng-if="loaded" st-table="skus" class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Description</th>
+                    <th>Rate</th>
+                    <th>Unit</th>
+                    <th ng-if="shop_open">Quantity</th>
+                    <th ng-if="shop_open" class="price">Price</th>
+                  </tr>
+                </thead> 
+                <tbody>
+                  <tr ng-repeat="row in skus" ng-if="c == row.category" ng-class="{success: (row.quantity > 0)}">
+                    <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
+                    <td>{{row.description}}</td>
+                    <td>{{row.rate}}</td>
+                    <td>{{row.unit}}</td>
+                    <td ng-if="shop_open"><input type="number" class="quantity" ng-model="row.quantity"></td>
+                    <td ng-if="shop_open"><span class="cost" ng-show="row.quantity > 0">&#8377; {{row.rate * row.quantity}}</span></td>
+                  </tr>
+                </tbody>
+                <tfoot ng-if="shop_open">
+                  <tr>
+                    <td colspan=5 style="text-align: right">Total</td>
+                    <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
+                  </tr>
+                </tfoot>
+              </table>
+
+            </div>
+          </div>
           <a ng-if="shop_open" href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Shopping Cart</a>
 
         </div>

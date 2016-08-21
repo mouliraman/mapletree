@@ -24,7 +24,6 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       }
 
       $scope.onGetOrders = function(response) {
-        console.log('got order for ' + response.order_id);
         $scope.orders[response.order_id] = response.orders;
       }
 
