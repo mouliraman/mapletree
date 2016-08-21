@@ -23,12 +23,15 @@ const db = new Db();
 
 // get profile information about the user
 server.route({method: 'GET', path:'/data/users/{uid}.json', handler: function(req, reply) {
-  console.log('getting user with id ' + req.params.uid);
-  var u = db.getUser(req.params.uid);
-  if (u) {
-    reply({status: 'success', profile: u});
+  if (req.params.uid == 'all') {
+    reply({status: 'success', users: db.data.users});
   } else {
-    reply({status: 'failed', reason: 'not found'});
+    var u = db.getUser(req.params.uid);
+    if (u) {
+      reply({status: 'success', profile: u});
+    } else {
+      reply({status: 'failed', reason: 'not found'});
+    }
   }
 }});
 
@@ -64,6 +67,7 @@ server.route({method: 'POST', path:'/data/orders/{order_id}.json', handler: func
 }
 });
 
+
 server.route({method: 'GET', path:'/data/orders/all.json', handler: function(req, reply) {
   return reply(db.getOrdersForAll());
 }});
@@ -74,6 +78,10 @@ server.route({method: 'GET', path:'/data/orders/community.json', handler: functi
   } else {
     reply({status: 'failed', reason: 'mandatory param community not provided'});
   }
+}});
+
+server.route({method: 'GET', path:'/data/orders/{order_id}/all.json', handler: function(req, reply) {
+  return reply({order_id: req.params.order_id, orders: db.getOrdersForAll(req.params.order_id)});
 }});
 
 server.route({method: 'GET', path:'/data/orders/{order_id}/user.json', handler: function(req, reply) {
