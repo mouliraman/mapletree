@@ -8,7 +8,7 @@
 
     <title>Mapletree Farms</title>
 
-    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/google-plus-signin.css" />
 
@@ -35,8 +35,9 @@
         <div ng-if="current_user" class="dropdown pull-right">
         <a href="#" class="btn btn-success dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Account <span class="caret"></span></a>
         <ul class="dropdown-menu">
+          <li><a ng-class="{'disabled': new_user}" ng-click="navigateTo('order-page')" href="#">Order List</a></li>
           <li><a ng-class="{'disabled': new_user}" ng-click="navigateTo('shopping-cart')" href="#">Shopping Cart</a></li>
-          <li><a ng-click="navigateTo('orders')" href="#">My Orders</a></li>
+          <!--<li><a ng-click="navigateTo('orders')" href="#">My Orders</a></li>-->
           <li><a ng-click="navigateTo('preferences')" href="#">Preferences</a></li>
           <li role="separator" class="divider"></li>
           <li><a ng-click="signOut()" href="#">Logout</a></li>
@@ -71,15 +72,15 @@
       <div ng-if="current_user" class="row">
 
         <div ng-if="error_message" class="alert alert-danger">
-          <p>{{error_message}}</p>
+          <p ng-bind-html="error_message"></p>
         </div>
 
         <div ng-if="!error_message && warning_message" class="alert alert-warning">
-          <p>{{warning_message}}</p>
+          <p ng-bind-html="warning_message"></p>
         </div>
 
         <div ng-if="!error_message && !warning_message && success_message" class="alert alert-success">
-          <p>{{success_message}}</p>
+          <p ng-bind-html="success_message"></p>
         </div>
 
         <!-- Dashboard when user logs in -->
@@ -94,28 +95,28 @@
                 <th>Description</th>
                 <th>Rate</th>
                 <th>Unit</th>
-                <th>Quantity</th>
-                <th class="price">Price</th>
+                <th ng-if="shop_open">Quantity</th>
+                <th ng-if="shop_open" class="price">Price</th>
               </tr>
             </thead> 
             <tbody>
-              <tr ng-repeat="row in skus" class="{danger: (row.order > 0)}">
-                <td>{{$index+1}} <span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span></td>
+              <tr ng-repeat="row in skus" ng-class="{success: (row.quantity > 0)}">
+                <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
                 <td>{{row.description}}</td>
                 <td>{{row.rate}}</td>
                 <td>{{row.unit}}</td>
-                <td><input type="number" class="quantity" ng-model="row.quantity"></td>
-                <td><span class="cost" ng-show="row.quantity > 0">&#8377; {{row.rate * row.quantity}}</span></td>
+                <td ng-if="shop_open"><input type="number" class="quantity" ng-model="row.quantity"></td>
+                <td ng-if="shop_open"><span class="cost" ng-show="row.quantity > 0">&#8377; {{row.rate * row.quantity}}</span></td>
               </tr>
             </tbody>
-            <tfoot>
+            <tfoot ng-if="shop_open">
               <tr>
                 <td colspan=5 style="text-align: right">Total</td>
                 <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
               </tr>
             </tfoot>
           </table>
-          <a href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Shopping Cart</a>
+          <a ng-if="shop_open" href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Shopping Cart</a>
 
         </div>
 
@@ -124,7 +125,8 @@
           <div class="page-header">
             <h1>Shopping Cart</h1>
           </div>
-          <p ng-if="loaded && (current_order().length == 0)">You have not added any items to your shopping cart</p>
+          <p ng-if="!shop_open">Please wait for your shopping window to open to access shopping cart</p>
+          <p ng-if="shop_open && (current_order().length == 0)">You have not added any items to your shopping cart</p>
           <table ng-if="current_order().length > 0" st-table="skus" class="table table-bordered table-hover">
             <thead>
               <tr>
@@ -225,7 +227,7 @@
 
       <footer class="footer">
       <p class="pull-right">v1.0</p>
-      <p>© 2016 Mayank Sharma</p>
+      <p>© 2016 Mapletree Farms</p>
       </footer>
 
       <div class="modal fade" tabindex="-1" id="loadingModel" role="dialog">
@@ -240,10 +242,11 @@
     <!--<script src="https://apis.google.com/js/platform.js" async defer></script>-->
     <script src="https://apis.google.com/js/platform.js"></script>
     <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
-    <script src="/js/script.js"></script>
+    <script src="https://code.angularjs.org/1.4.6/angular-sanitize.js"></script>
+    <script src="/js/user.js"></script>
     <script src="/js/smart-table.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
  
   </body>
 
