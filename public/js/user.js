@@ -1,4 +1,4 @@
-angular.module('myApp', ['smart-table'])
+angular.module('myApp', ['ngSanitize', 'smart-table'])
 .controller('mainCtrl', ['$scope', '$http', '$filter',
     function ($scope, $http, $filter) {
 
@@ -25,6 +25,7 @@ angular.module('myApp', ['smart-table'])
         $scope.current_user = {id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()};
         $http.get('/data/users/' + profile.getId() + '.json').success($scope.onProfle);
         $scope.app_loaded = false;
+        $scope.shop_open = false;
       }
 
       $scope.onProfle = function(data) {
@@ -37,24 +38,35 @@ angular.module('myApp', ['smart-table'])
         $http.get('/data/communities.json').success($scope.onCommunityInformation);
       }
 
+      $scope.slug = function(a) {
+        if (a) {
+          return a.toLowerCase().replace((/\W+/g,'-'));
+        }
+        return 'NaaN';
+      }
+
       $scope.onCommunityInformation = function (data) {
         console.log('onCommunityInformation');
-        $scope.communities = data;
+        $scope.communities = [];
+        var user_com_slug = $scope.slug($scope.current_user.community);
+        
+        for (var i=0;i<data.length;i++) {
+          if (data[i].state == 'active') {
+            $scope.communities.push(data[i]);
+            var c_slug = $scope.slug(data[i].name);
 
-        if (!$scope.new_user) {
-          for (var i=0;i<$scope.communities.length;i++) {
-            var c = $scope.communities[i];
-            if (c.name == $scope.current_user.community) {
-              $scope.current_community = c;
+            if ((!$scope.new_user) && (c_slug == user_com_slug)) {
+              $scope.current_community = data[i];
               $scope.set_order_id();
-              break;
             }
           }
+        }
 
-          if ($scope.current_community == null) {
-            console.log('could not fetch the community');
-            $scope.new_user = true;
-          }
+        console.log($scope.communities);
+
+        if ($scope.current_community == null) {
+          console.log('could not fetch the community');
+          $scope.new_user = true;
         }
 
         if (!$scope.new_user) {
@@ -139,12 +151,16 @@ angular.module('myApp', ['smart-table'])
       }
 
       $scope.submitOrder = function() {
-        $('#loadingModel').modal('show');
-        $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id, $scope.current_order()).success(function () {
-          $('#loadingModel').modal('hide');
-          $scope.warning_message = $scope.error_message = null;
-          $scope.success_message = "Congratulations !! Your order has been placed";
-        });
+        if ($scope.check_if_shop_is_open()) {
+          $('#loadingModel').modal('show');
+          $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id, $scope.current_order()).success(function () {
+            $('#loadingModel').modal('hide');
+            $scope.warning_message = $scope.error_message = null;
+            $scope.success_message = "Congratulations !! Your order has been placed";
+          });
+        } else {
+          $scope.error_message = "Sorry. Your order window is closed. You cannot place order.";
+        }
       }
 
       $scope.signOut = function() {
@@ -168,12 +184,25 @@ angular.module('myApp', ['smart-table'])
         return ret;
       }
 
-      $scope.set_order_id = function () {
+      $scope.get_time = function(t) {
+        var d = new Date();
+        var t_split = t.split(':');
+        d.setHours(parseInt(t_split[0]));
+        d.setMinutes(parseInt(t_split[1]));
+        d.setSeconds(parseInt(t_split[1]));
+        return d;
+      }
+
+      $scope.get_weekday = function(w) {
         var weekday = ['sunday', 'monday','tuesday','wednesday','thursday','friday','saturday'];
+        return weekday.indexOf(w);
+      }
+
+      $scope.set_order_id = function () {
 
         var d = new Date(); // today's date
-        var w = $scope.current_community.order_window.end.day_of_week;
-        var weekday_index = weekday.indexOf(w);
+        var w = $scope.current_community.end_day;
+        var weekday_index = $scope.get_weekday(w);
         var diff = weekday_index - d.getDay();
         if (diff < 0) {
           diff += 7;
@@ -184,39 +213,55 @@ angular.module('myApp', ['smart-table'])
       }
 
       $scope.check_if_shop_is_open = function () {
-        var weekday = ['sunday', 'monday','tuesday','wednesday','thursday','friday','saturday'];
         var d = new Date(); // today's date
-        var open_day = $scope.current_community.order_window.start.day_of_week;
-        var close_day = $scope.current_community.order_window.end.day_of_week;
-        var open_day_index = weekday.indexOf(open_day);
-        var close_day_index = weekday.indexOf(close_day);
+        console.log('start day ' + $scope.current_community.start_day + ', end_day ' + $scope.current_community.end_day);
+        var open_day_index = $scope.get_weekday($scope.current_community.start_day);
+        var close_day_index = $scope.get_weekday($scope.current_community.end_day);
         var current_day_index = d.getDay();
 
         if (open_day_index == current_day_index) {
           // The shop is open today. But are you early?
-          $scope.warning_message = "The shopping window has opened today. Place order before end of window";
-          console.log("same day as opening day");
-          return;
+          var start_time = $scope.get_time($scope.current_community.start_time);
+          if (start_time > new Date()) {
+            $scope.warning_message = "The shopping window will open today at <b></b>. Please come back to place order.";
+          } else {
+            $scope.success_message = "Shopping window has opened. Please place your order";
+            $scope.shop_open = true;
+          }
         }
 
-        if (close_day_index == current_day_index) {
+        else if (close_day_index == current_day_index) {
           // The shop will close today. Are you late?
-          $scope.warning_message = "The shopping window is closing today. Place order before " + $scope.current_community.order_window.end.time ;
-          console.log("same day as closing day");
-          return;
+          var end_time = $scope.get_time($scope.current_community.end_time);
+          console.log(end_time);
+          console.log(new Date());
+          if (end_time < new Date()) {
+            $scope.error_message = "The shopping window has closed for today.";
+          } else {
+            $scope.warning_message = "The shopping window is closing today. Place order before " + $scope.current_community.end_time ;
+            console.log("same day as closing day");
+            $scope.shop_open = true;
+          }
         }
 
         // set open_day as zero
-        close_day_index = (close_day_index - open_day_index + 7) % 7;
-        current_day_index = (current_day_index - open_day_index + 7) % 7;
-        if (current_day_index < close_day_index) {
-          // Phew.. we have time to order
-          console.log('can place order');
-        } else {
-          $scope.error_message = "The shopping window is not open. You cannot place an order.";
-          console.log('cannot place order');
-          // Sorry. You need to wait for couple of days
+        else {
+          close_day_index = (close_day_index - open_day_index + 7) % 7;
+          current_day_index = (current_day_index - open_day_index + 7) % 7;
+          if (current_day_index < close_day_index) {
+            // Phew.. we have time to order
+            console.log('can place order');
+            $scope.shop_open = true;
+          } else {
+            var x = new Date();
+            x.setDate(x.getDate() + ((7 + open_day_index - x.getDay()) % 7));
+            $scope.error_message = "Your window to place order is not open.</br>You can come back at <b>" + $scope.current_community.start_time + "</b> on <b>" + x.toString().split(' ').slice(0,3).join(' ') + "</b> to place the order.";
+            console.log('cannot place order');
+            // Sorry. You need to wait for couple of days
+          }
         }
+
+        return $scope.shop_open;
       }
 
     }
