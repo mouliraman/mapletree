@@ -62,6 +62,29 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         });
       }
 
+      $scope.download_csv = function(d) {
+        var formated_date = $scope.format_date(d);
+        var data = $scope.orders[formated_date];
+        var CSV = "S.No,Description,Rate,Unit,Quantity,Price\r\n";
+        
+        for (var i=0; i<data.length; i++) {
+          CSV += i+1;
+          CSV += ',' + data[i].description;
+          CSV += ',' + data[i].rate;
+          CSV += ',' + data[i].unit;
+          CSV += ',' + data[i].quantity;
+          CSV += ',' + (data[i].rate * data[i].quantity);
+          CSV += "\r\n";
+        }
+        var uri = 'data:application/csv;charset=utf-8,' + escape(CSV);
+        var link = document.createElement("a");
+        link.href = uri;
+        link.style = "visibility:hidden";
+        link.download = formated_date + ".csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
 
     }
 ])

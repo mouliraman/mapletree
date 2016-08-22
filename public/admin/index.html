@@ -26,7 +26,7 @@
         <div ng-if="current_user" class="dropdown pull-right">
         <a href="#" class="btn btn-success dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Account <span class="caret"></span></a>
         <ul class="dropdown-menu">
-          <li role="separator" class="divider"></li>
+          <!--<li role="separator" class="divider"></li>-->
           <li><a ng-click="signOut()" href="#">Logout</a></li>
         </ul>
         </div>
@@ -69,7 +69,6 @@
           </div>
 
           <div role="tabpanel" class="tab-pane " id="orders">
-            <h4>Orders</h4>
 
             <ul class="nav nav-tabs" role="tablist">
               <li ng-repeat="d in display_dates" role="presentation" ng-class="{'active': d.getDate() == today_date.getDate()}">
@@ -79,13 +78,11 @@
 
             <div class="tab-content">
               <div ng-repeat="d in display_dates" ng-class="{'active': d.getDate() == today_date.getDate()}" role="tabpanel" class="tab-pane" id="date-{{format_date(d)}}">
-                <h4>{{format_date(d)}}</h4>
  
-                <p ng-if="orders[format_date(d)]">
-                Number of items = {{orders[format_date(d)].length}}
-                </p>
+                <a class="pull-right btn btn-success" ng-if="orders[format_date(d)].length > 0" ng-click="download_csv(d)" href="#">Download</a>
+                <h4>{{format_date(d)}}</h4>
 
-                <table ng-if="orders[format_date(d)]" class="table table-bordered table-hover">
+                <table ng-if="orders[format_date(d)].length > 0" class="table table-bordered table-hover">
                   <thead>
                     <tr>
                       <th></th>
@@ -134,7 +131,7 @@
                 </tr>
               </thead> 
               <tbody>
-                <tr ng-repeat="row in users" ng-class="{success: (row.quantity > 0)}">
+                <tr ng-repeat="row in users" ng-class="{success: row.admin}">
                 <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
                 <td>{{row.name}}</td>
                 <td>{{row.mobile}}</td>
