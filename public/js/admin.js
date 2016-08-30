@@ -63,6 +63,15 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         }
       }
 
+      $scope.totalPrice = function () {
+        var skus = $scope.orders[$scope.order_select.order_id];
+        var ret = 0;
+        for (var i=0;i<skus.length;i++) {
+          ret += skus[i].quantity * skus[i].rate ;
+        }
+        return ret;
+      }
+
       $scope.onGetOrders = function(response) {
         $scope.orders[response.order_id] = response.orders;
       }
