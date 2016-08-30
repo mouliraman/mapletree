@@ -6,6 +6,8 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       $scope.loaded = 0;
       $scope.new_user = true;
       $scope.app_loaded = true;
+      $scope.user = {};
+      $scope.ajax_waiting = false;
 
       /* On login, the following sequence is executed
        *   1. get profile of the user
@@ -19,13 +21,14 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
        *
        */
 
-      $scope.onGoogleLogin = function(response) {
-        console.log('onGoogleLogin');
-        var profile = response.getBasicProfile();
-        $scope.current_user = {id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()};
-        $http.get('/data/users/' + profile.getId() + '.json').success($scope.onProfle);
+      $scope.onLogin = function(profile) {
+        $scope.current_user = profile;
+        $http.get('/users/' + profile.id + '.json').success($scope.onProfle);
         $scope.app_loaded = false;
         $scope.shop_open = false;
+        //$scope.$apply(function () {
+          $('#signupModel').modal('hide');
+        //});
       }
 
       $scope.onProfle = function(data) {
@@ -46,7 +49,6 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       }
 
       $scope.onCommunityInformation = function (data) {
-        console.log('onCommunityInformation');
         $scope.communities = [];
         var user_com_slug = $scope.slug($scope.current_user.community);
         
@@ -117,7 +119,11 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       }
 
       $scope.options = {
-        'onsuccess': $scope.onGoogleLogin,
+        'onsuccess': function(response) {
+          var profile = response.getBasicProfile();
+          console.log(profile);
+          $scope.onLogin({id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()});
+        },
         'onfailure': function(response) {
           console.log('failed to login');
         }
@@ -132,9 +138,25 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         console.log('Not signed into Google Plus.');
       });
 
+      $scope.signInUser = function() {
+        $scope.ajax_waiting = true;
+        $scope.error_message = null;
+        $http.post('/' + $scope.user.action + '.json', $scope.user).success(function(response) {
+          if (response.status == 'success') {
+            $scope.onLogin(response.profile);
+          } else {
+            $scope.error_message = response.reason;
+            //TODO : Print an error
+          }
+          $scope.ajax_waiting = false;
+        }).error(function (err) {
+          $scope.error_message = "Something went wrong !! Please try again.";
+          $scope.ajax_waiting = false;
+        });
+      }
+
       $scope.registerUser = function() {
-        console.log('registerUser');
-        $http.post('/data/users/' + $scope.current_user.id + '.json', $scope.current_user).success($scope.onProfle);
+        $http.post('/users/' + $scope.current_user.id + '.json', $scope.current_user).success($scope.onProfle);
       }
 
       $scope.navigateTo = function(dest) {
@@ -176,6 +198,7 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
             $scope.current_user = null;
             $scope.current_community = null;
             $scope.skus = [];
+            $scope.user = {};
           });
         });
       }

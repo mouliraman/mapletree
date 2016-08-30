@@ -9,6 +9,7 @@
     <title>Mapletree Farms</title>
 
     <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker3.min.css">
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/google-plus-signin.css" />
 
@@ -70,51 +71,67 @@
 
           <div role="tabpanel" class="tab-pane " id="orders">
 
-            <ul class="nav nav-tabs" role="tablist">
-              <li ng-repeat="d in display_dates" role="presentation" ng-class="{'active': d.getDate() == today_date.getDate()}">
-              <a href="#date-{{format_date(d)}}" aria-controls="date-{{format_date(d)}}" role="tab" data-toggle="tab">{{format_date(d)}}</a>
-              </li>
-            </ul>
-
-            <div class="tab-content">
-              <div ng-repeat="d in display_dates" ng-class="{'active': d.getDate() == today_date.getDate()}" role="tabpanel" class="tab-pane" id="date-{{format_date(d)}}">
- 
-                <a class="pull-right btn btn-success" ng-if="orders[format_date(d)].length > 0" ng-click="download_csv(d)" href="#">Download</a>
-                <h4>{{format_date(d)}}</h4>
-
-                <table ng-if="orders[format_date(d)].length > 0" class="table table-bordered table-hover">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Description</th>
-                      <th>Rate</th>
-                      <th>Unit</th>
-                      <th>Quantity</th>
-                      <th class="price">Price</th>
-                    </tr>
-                  </thead> 
-                  <tbody>
-                    <tr ng-repeat="row in orders[format_date(d)]">
-                      <td>{{$index+1}}</td>
-                      <td>{{row.description}}</td>
-                      <td>{{row.rate}}</td>
-                      <td>{{row.unit}}</td>
-                      <td><span class="quantity">{{row.quantity}}</span></td>
-                      <td><span class="cost">&#8377; {{row.rate * row.quantity}}</span></td>
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colspan=5 style="text-align: right">Total</td>
-                      <td><span class="cost">&#8377;</span></td>
-                    </tr>
-                  </tfoot>
-                </table>
- 
+            <div class="row">
+              <div class="col-lg-4">
+                <div class="input-group date">
+                  <input type="text" ng-change="fetchOrder()" ng-model="order_select.order_id" class="form-control" value="2016-08-27">
+                  <div class="input-group-addon">
+                    <span class="glyphicon glyphicon-th"></span>
+                  </div>
+                </div>
               </div>
 
+              <div class="col-lg-4">
+                <div class="input-group">
+                  <select ng-change="fetchOrder()" ng-model="order_select.community" class="form-control">
+                    <option>--- Please Select ---</option>
+                    <option ng-repeat="c in communities">{{c.name}}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="col-lg-4">
+                <div class="input-group">
+                  <select ng-change="fetchOrder()" ng-model="order_select.uid" class="form-control">
+                    <option>--- Please Select ---</option>
+                    <option ng-repeat="c in usersPerCommunity(order_select.community)" value="{{c.id}}">{{c.name}}</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
+            <a class="pull-right btn btn-success" ng-if="orders[order_select.order_id].length > 0" ng-click="download_csv(d)" href="#">Download</a>
+            <h4>{{order_select.order_id}}</h4>
+
+            <table ng-if="orders[order_select.order_id].length > 0" class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Description</th>
+                  <th>Rate</th>
+                  <th>Unit</th>
+                  <th>Quantity</th>
+                  <th class="price">Price</th>
+                </tr>
+              </thead> 
+              <tbody>
+                <tr ng-repeat="row in orders[order_select.order_id]">
+                  <td>{{$index+1}}</td>
+                  <td>{{row.description}}</td>
+                  <td>{{row.rate}}</td>
+                  <td>{{row.unit}}</td>
+                  <td><span class="quantity">{{row.quantity}}</span></td>
+                  <td><span class="cost">&#8377; {{row.rate * row.quantity}}</span></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan=5 style="text-align: right">Total</td>
+                  <td><span class="cost">&#8377;</span></td>
+                </tr>
+              </tfoot>
+            </table>
+ 
           </div>
 
           <div role="tabpanel" class="tab-pane " id="users">
@@ -154,12 +171,13 @@
     </div>
 
     <script src="https://apis.google.com/js/platform.js" ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
     <script src="https://code.angularjs.org/1.4.6/angular-sanitize.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
     <script src="/js/admin.js"></script>
     <script src="/js/smart-table.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
  
   </body>
 

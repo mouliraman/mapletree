@@ -1,4 +1,5 @@
 var Fs = require('fs');
+var crypto = require('crypto');
 
 function Db(cloud_storage) {
   if (cloud_storage) {
@@ -69,14 +70,54 @@ function Db(cloud_storage) {
     this.load(function() {console.log('file loaded')});
   }
 
-  this.getUser = function(id) {
+  this.getUser = function(prop, value) {
     for(var i = 0; i<this.data.users.length; i++) {
       var u = this.data.users[i];
-      if (u.id == id) {
+      if (u[prop] == value) {
         return u;
       }
     }
     return null;
+  }
+  this.getUserById = function(id) { return this.getUser('id', id);}
+  this.getUserByEmail = function(email) { return this.getUser('email', email);}
+
+  this.loginUser = function(email, password) {
+    var u = this.getUserByEmail(email);
+
+    if (u) {
+
+      var hash = crypto.createHash('sha256');
+      hash.update(password);
+      var hashed_password = hash.digest('hex');
+
+      if (u.password == hashed_password) {
+        return u;
+      }
+    }
+    return null;
+  }
+
+  this.addUser = function(user) {
+    var u = this.getUserByEmail(user.email);
+    if (u) {
+      return false;
+    }
+
+    // Hash the password
+    var hash = crypto.createHash('sha256');
+    hash.update(user.password);
+    user.password = hash.digest('hex');
+ 
+    // Generate a unique ID
+    uid = Math.round(Math.random() * 10000000000000000);
+    while (this.getUserById(uid)) {
+      uid = Math.round(Math.random() * 10000000000000000);
+    }
+    user.id = uid;
+    this.data.users.push(user);
+    this.save();
+    return user;
   }
 
   this.updateUser = function(user) {
@@ -116,7 +157,7 @@ function Db(cloud_storage) {
     var uids = Object.keys(this.data.orders);
     for (var x=0;x<uids.length;x++) {
       var uid = uids[x];
-      var user = this.getUser(uid);
+      var user = this.getUserById(uid);
       if (user.community != community) {
         continue;
       }

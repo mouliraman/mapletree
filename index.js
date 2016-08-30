@@ -9,12 +9,14 @@ const Db = require('./db');
 // Create a server with a host and port
 const server = new Hapi.Server({
   connections: {
-                 routes: {
-                           files: {
-                                    relativeTo: Path.join(__dirname, 'public')
-                                  }
-                         }
-               }
+    routes: {
+      files: { relativeTo: Path.join(__dirname, 'public') },
+      payload: {
+        output: 'data',
+        parse: true
+      }
+    }
+  }
 });
 
 server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
@@ -22,11 +24,11 @@ server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
 const db = new Db();
 
 // get profile information about the user
-server.route({method: 'GET', path:'/data/users/{uid}.json', handler: function(req, reply) {
+server.route({method: 'GET', path:'/users/{uid}.json', handler: function(req, reply) {
   if (req.params.uid == 'all') {
     reply({status: 'success', users: db.data.users});
   } else {
-    var u = db.getUser(req.params.uid);
+    var u = db.getUserById(req.params.uid);
     if (u) {
       reply({status: 'success', profile: u});
     } else {
@@ -36,7 +38,7 @@ server.route({method: 'GET', path:'/data/users/{uid}.json', handler: function(re
 }});
 
 // register and set profile information about the user
-server.route({method: 'POST', path:'/data/users/{uid}.json', handler: function(req, reply) {
+server.route({method: 'POST', path:'/users/{uid}.json', handler: function(req, reply) {
   if (req.payload) {
     if (db.updateUser(req.payload)) {
       reply({status: 'success', profile: req.payload});
@@ -46,12 +48,50 @@ server.route({method: 'POST', path:'/data/users/{uid}.json', handler: function(r
   } else {
     reply({status: 'failed', reason: 'mandatory param uid and/or profile not provided'});
   }
-}, config: {payload: {
-  output: 'data',
-  parse: true
-}
-}
-});
+}});
+
+// signup a user
+server.route({method: 'POST', path:'/register.json', handler: function(req, reply) {
+  if (req.payload) {
+    var user = db.addUser(req.payload);
+    if (user) {
+      // TODO : Fire an email
+      return reply({status: 'success', profile: user});
+    } else {
+      return reply({status: 'failed', reason: 'user with email ' + req.payload.email + ' is already registered'});
+    }
+  } else {
+    reply({status: 'failed', reason: 'mandatory param uid and/or profile not provided'});
+  }
+}});
+
+
+// login the user
+server.route({method: 'POST', path:'/login.json', handler: function(req, reply) {
+
+  //setTimeout(function() {
+  if (!req.payload) {
+    reply({status: 'failed', reason: 'mandatory param uid and/or profile not provided'});
+  }
+
+  if (!req.payload.email) {
+    return reply({status: 'failed', reason: 'no email address provided'});
+  }
+  if (!req.payload.password) {
+    return reply({status: 'failed', reason: 'no password provided'});
+  }
+
+  var user = db.loginUser(req.payload.email, req.payload.password);
+  if (!user) {
+    return reply({status: 'failed', reason: "user email and password don't match"});
+  }
+
+  return reply({status: 'success', profile: user});
+
+  //}, 5000);
+
+}});
+
 
 server.route({method: 'POST', path:'/data/orders/{order_id}.json', handler: function(req, reply) {
   if (req.payload && req.query.uid) {
@@ -60,12 +100,7 @@ server.route({method: 'POST', path:'/data/orders/{order_id}.json', handler: func
   } else {
     reply({status: 'failed', reason: 'mandatory param uid and/or orders not provided'});
   }
-}, config: {payload: {
-  output: 'data',
-  parse: true
-}
-}
-});
+}});
 
 
 server.route({method: 'GET', path:'/data/orders/all.json', handler: function(req, reply) {
@@ -80,8 +115,18 @@ server.route({method: 'GET', path:'/data/orders/community.json', handler: functi
   }
 }});
 
-server.route({method: 'GET', path:'/data/orders/{order_id}/all.json', handler: function(req, reply) {
-  return reply({order_id: req.params.order_id, orders: db.getOrdersForAll(req.params.order_id)});
+server.route({method: 'GET', path:'/data/orders/{order_id}.json', handler: function(req, reply) {
+  var ret = {order_id: req.params.order_id};
+  if (req.query.uid) {
+    ret.uid = req.query.uid;
+    ret.orders = db.getOrdersForUser(req.query.uid, req.params.order_id);
+  } else if (req.query.community) {
+    ret.community = req.query.community;
+    ret.orders = db.getOrdersForCommunity(req.query.community);
+  } else {
+    ret.orders = db.getOrdersForAll(req.params.order_id);
+  }
+  return reply(ret);
 }});
 
 server.route({method: 'GET', path:'/data/orders/{order_id}/user.json', handler: function(req, reply) {

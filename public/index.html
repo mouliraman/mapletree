@@ -16,7 +16,7 @@
 
   </head>
 
-  <body>
+  <body class="ng-cloak">
 
     <div class="container">
       <div class="header clearfix">
@@ -33,21 +33,23 @@
         -->
 
         <div ng-if="current_user" class="dropdown pull-right">
-        <a href="#" class="btn btn-success dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Account <span class="caret"></span></a>
-        <ul class="dropdown-menu">
-          <li><a ng-class="{'disabled': new_user}" ng-click="navigateTo('order-page')" href="#">Order List</a></li>
-          <li><a ng-class="{'disabled': new_user}" ng-click="navigateTo('shopping-cart')" href="#">Shopping Cart</a></li>
-          <!--<li><a ng-click="navigateTo('orders')" href="#">My Orders</a></li>-->
-          <li><a ng-click="navigateTo('preferences')" href="#">Preferences</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a ng-click="signOut()" href="#">Logout</a></li>
-        </ul>
+          <a href="#" class="btn btn-success dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Account <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a ng-class="{'disabled': new_user}" ng-click="navigateTo('order-page')" href="#">Order List</a></li>
+            <li><a ng-class="{'disabled': new_user}" ng-click="navigateTo('shopping-cart')" href="#">Shopping Cart</a></li>
+            <!--<li><a ng-click="navigateTo('orders')" href="#">My Orders</a></li>-->
+            <li><a ng-click="navigateTo('preferences')" href="#">Preferences</a></li>
+            <li role="separator" class="divider"></li>
+            <li ng-if="current_user.admin"><a href="/admin">Admin</a></li>
+            <li><a ng-click="signOut()" href="#">Logout</a></li>
+          </ul>
         </div>
 
 
         <ul ng-if="!current_user" class="nav nav-pills pull-right">
           <li>
-          <google-sign-in-button button-id="uniqueid" options="options"></google-sign-in-button>
+          <p><a class="btn btn-sm btn-success" href="#" data-toggle="modal" data-target="#signupModel" ng-click="user.action = 'login'" role="button">Login</a></p>
+          <!--<google-sign-in-button button-id="uniqueid" options="options"></google-sign-in-button>-->
           </li>
         </ul>
         </nav>
@@ -65,7 +67,7 @@
       <div ng-if="!current_user" class="jumbotron">
         <h1>Mapletree Fresh Produce</h1>
         <p class="lead">Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-        <p><a class="btn btn-lg btn-success" href="#" role="button">Sign up today</a></p>
+        <p><a class="btn btn-lg btn-success" href="#" data-toggle="modal" data-target="#signupModel" ng-click="user.action = 'register'" role="button">Sign up today</a></p>
         <!--<google-sign-in-button class="btn btn-lg btn-success" button-id="uniqueid" options="options"></google-sign-in-button>-->
       </div>
 
@@ -243,6 +245,67 @@
       <p class="pull-right">v1.0</p>
       <p>© 2016 Mapletree Farms</p>
       </footer>
+
+      <div class="modal fade" tabindex="-1" id="signupModel" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content" style="text-align: center">
+            <div class="modal-body">
+
+              <div class="panel panel-default">
+                <div class="panel-body">
+                  <p>If you have a google account, you can sign-in using google.</p>
+                  <google-sign-in-button button-id="uniqueid" options="options"></google-sign-in-button>
+                </div>
+              </div>
+              <p> OR</p>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 ng-show="user.action == 'register'">Sign Up</h4>
+                  <h4 ng-show="user.action == 'login'">Login </h4>
+                </div>
+                <div class="panel-body">
+
+                  <div ng-if="error_message" class="alert alert-danger">
+                    <p ng-bind-html="error_message"></p>
+                  </div>
+
+                  <form class="form-horizontal">
+                    <div class="form-group" ng-show="user.action == 'register'">
+                      <label for="inputName" class="col-sm-2 control-label">Your Name</label>
+                      <div class="col-sm-10">
+                        <input type="text" class="form-control" ng-model="user.name" id="inputName" placeholder="Name">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="inputEmail3" class="col-sm-2 control-label">Email</label>
+                      <div class="col-sm-10">
+                        <input type="email" class="form-control" ng-model="user.email" id="inputEmail3" placeholder="Email">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="inputPassword3" class="col-sm-2 control-label">Password</label>
+                      <div class="col-sm-10">
+                        <input type="password" class="form-control" ng-model="user.password" id="inputPassword3" placeholder="Password">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-offset-2 col-sm-10">
+                        <a href="#" ng-show="user.action == 'register'" ng-click="user.action = 'login'">I already have an account</a>
+                        <a href="#" ng-show="user.action == 'login'" ng-click="user.action = 'register'">I don't have an account</a>
+                        <button type="submit" ng-click="signInUser()" class="btn btn-default btn-success">
+                          <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
+                          <span ng-if="!ajax_waiting && (user.action == 'register')">Sign Up</span>
+                          <span ng-if="!ajax_waiting && (user.action == 'login')">Login</span>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="modal fade" tabindex="-1" id="loadingModel" role="dialog">
         <div class="modal-dialog modal-sm" role="document">
