@@ -209,7 +209,7 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         for (var i=0;i<skus.length;i++) {
           ret += skus[i].quantity * skus[i].rate ;
         }
-        return ret;
+        return Math.round(ret * 100)/100;
       }
 
       $scope.get_time = function(t) {
