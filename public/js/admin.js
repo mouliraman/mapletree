@@ -53,7 +53,6 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         if ($scope.order_select.order_id) {
           $http({url: '/data/orders/' + $scope.order_select.order_id + '.json', method: 'GET', params: $scope.order_select}).success($scope.onGetOrders);
         }
-        console.log('fetching orders for ');console.log($scope.order_select);
       }
       $scope.usersPerCommunity = function(c) {
         if (c) {
@@ -63,17 +62,54 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         }
       }
 
-      $scope.totalPrice = function () {
+      $scope.totalPrice = function (packed) {
         var skus = $scope.orders[$scope.order_select.order_id];
         var ret = 0;
         for (var i=0;i<skus.length;i++) {
-          ret += skus[i].quantity * skus[i].rate ;
+          if (packed) {
+            ret += skus[i].packed_quantity * skus[i].rate ;
+          } else {
+            ret += skus[i].quantity * skus[i].rate ;
+          }
         }
+        ret = Math.round(ret * 100)/100;
         return ret;
+      }
+
+      $scope.price = function(a,b) {
+        return(Math.round(a * b * 100)/100);
       }
 
       $scope.onGetOrders = function(response) {
         $scope.orders[response.order_id] = response.orders;
+        if ($scope.order_select.uid) {
+          $scope.order_select.editable = true;
+          $scope.order_select.state = response.state;
+          for (var i=0;i<$scope.orders[response.order_id].length;i++) {
+            var order = $scope.orders[response.order_id][i];
+            if (!order.packed_quantity) {
+              order.packed_quantity = 0;
+            }
+            order.price = $scope.price(order.rate, order.quantity);
+          }
+        } else {
+          $scope.order_select.editable = false;
+        }
+      }
+
+      $scope.submitOrder = function() {
+        console.log('calling submitOrder');
+        $scope.ajax_waiting = true;
+        if ($scope.order_select.order_id && $scope.order_select.uid) {
+          $http.post('/data/orders/' + $scope.order_select.order_id + '.json?uid=' + $scope.order_select.uid, 
+              $scope.orders[$scope.order_select.order_id]).success(function () {
+            $scope.warning_message = $scope.error_message = null;
+            $scope.ajax_waiting = false;
+          }).error(function (err) {
+            $scope.error_message = "Something went wrong !! Please try again.";
+            $scope.ajax_waiting = false;
+          });
+        }
       }
 
       $scope.onProfle = function(response) {
@@ -111,8 +147,7 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       }
 
       $scope.download_csv = function(d) {
-        var formated_date = $scope.format_date(d);
-        var data = $scope.orders[formated_date];
+        var data = $scope.orders[$scope.order_select.order_id];
         var CSV = "S.No,Description,Rate,Unit,Quantity,Price\r\n";
         
         for (var i=0; i<data.length; i++) {
@@ -128,7 +163,7 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         var link = document.createElement("a");
         link.href = uri;
         link.style = "visibility:hidden";
-        link.download = formated_date + ".csv";
+        link.download = $scope.order_select.order_id + ".csv";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

@@ -61,6 +61,7 @@
           <li role="presentation" class="active"><a href="#dashboard" aria-controls="dashboard" role="tab" data-toggle="tab">Dashboard</a></li>
           <li role="presentation"><a href="#orders" aria-controls="orders" role="tab" data-toggle="tab">Orders</a></li>
           <li role="presentation"><a href="#users" aria-controls="users" role="tab" data-toggle="tab">Users</a></li>
+          <li role="presentation"><a href="#communities" aria-controls="communities" role="tab" data-toggle="tab">Communities</a></li>
         </ul>
 
         <div class="tab-content">
@@ -85,7 +86,7 @@
                 <div class="input-group">
                   <select ng-change="fetchOrder()" ng-model="order_select.community" class="form-control">
                     <option>--- Please Select ---</option>
-                    <option ng-repeat="c in communities">{{c.name}}</option>
+                    <option ng-repeat="c in communities | filter: {state: 'active'} : true">{{c.name}}</option>
                   </select>
                 </div>
               </div>
@@ -112,26 +113,38 @@
                   <th>Unit</th>
                   <th>Quantity</th>
                   <th class="price">Price</th>
+                  <th ng-show="order_select.editable">Packed Quantity</th>
+                  <th ng-show="order_select.editable" class="price">Final Price</th>
                 </tr>
               </thead> 
               <tbody>
-                <tr ng-repeat="row in orders[order_select.order_id]">
+                <tr ng-repeat="row in orders[order_select.order_id]" ng-class="{success: row.quantity == row.packed_quantity, danger: (row.packed_quantity > 0) && (row.quantity != row.packed_quantity)}">
                   <td>{{$index+1}}</td>
                   <td>{{row.description}}</td>
                   <td>{{row.rate}}</td>
                   <td>{{row.unit}}</td>
                   <td><span class="quantity">{{row.quantity}}</span></td>
-                  <td><span class="cost">&#8377; {{row.rate * row.quantity}}</span></td>
+                  <td><span class="cost">&#8377; {{row.price}}</span></td>
+                  <td ng-show="order_select.editable"><input type=number class="quantity" ng-model="row.packed_quantity" /></td>
+                  <td ng-show="order_select.editable"><span class="cost">&#8377; {{price(row.rate, row.packed_quantity)}}</span></td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr>
                   <td colspan=5 style="text-align: right">Total</td>
-                  <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
+                  <td><span class="cost">&#8377;{{totalPrice(false)}}</span></td>
+                  <td ng-show="order_select.editable"></td>
+                  <td ng-show="order_select.editable">&#8377;{{totalPrice(true)}}</td>
                 </tr>
               </tfoot>
             </table>
+            <!--<a href="#" class="pull-right btn btn-success">Delivered</a>-->
+            <a ng-click="submitOrder()" class="pull-right btn btn-success">
+              <span ng-show="!ajax_waiting">Save</span>
+              <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
+            </a>
  
+            <div class="clear"></div>
           </div>
 
           <div role="tabpanel" class="tab-pane " id="users">
@@ -149,16 +162,43 @@
               </thead> 
               <tbody>
                 <tr ng-repeat="row in users" ng-class="{success: row.admin}">
-                <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
-                <td>{{row.name}}</td>
-                <td>{{row.mobile}}</td>
-                <td>{{row.email}}</td>
-                <td>{{row.community}}</td>
-              </tr>
-            </tbody>
-          </table>
+                  <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
+                  <td>{{row.name}}</td>
+                  <td>{{row.mobile}}</td>
+                  <td>{{row.email}}</td>
+                  <td>{{row.community}}</td>
+                </tr>
+              </tbody>
+            </table>
  
           </div>
+
+          <div role="tabpanel" class="tab-pane " id="communities">
+            <h4>Communities</h4>
+
+            <table ng-if="communities" st-table="communities" class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Name</th>
+                  <th>Window Start</th>
+                  <th>Window End</th>
+                  <th># Users</th>
+                </tr>
+              </thead> 
+              <tbody>
+                <tr ng-repeat="row in communities" ng-class="{danger: row.state != 'active'}">
+                  <td>{{$index+1}}</td>
+                  <td>{{row.name}}</td>
+                  <td>{{row.start_time}} {{row.start_day}}</td>
+                  <td>{{row.end_time}} {{row.end_day}}</td>
+                  <td>{{row.users.length}}</td>
+                </tr>
+              </tbody>
+            </table>
+ 
+          </div>
+
         </div>
 
       </div>
