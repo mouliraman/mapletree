@@ -8,11 +8,10 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       $scope.orders = [];
       $scope.order_select = {};
 
-      $scope.today_date = new Date();
-
       $scope.format_date = function (d) {
         return [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
       }
+      $scope.order_select.order_id = $scope.format_date(new Date());
 
       $scope.getUsersPerCommunity = function () {
         if (($scope.users) && ($scope.communities)) {
