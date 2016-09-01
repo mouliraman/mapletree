@@ -122,7 +122,7 @@ server.route({method: 'GET', path:'/data/orders/{order_id}.json', handler: funct
     ret.orders = db.getOrdersForUser(req.query.uid, req.params.order_id);
   } else if (req.query.community) {
     ret.community = req.query.community;
-    ret.orders = db.getOrdersForCommunity(req.query.community);
+    ret.orders = db.getOrdersForCommunity(req.query.community, req.params.order_id);
   } else {
     ret.orders = db.getOrdersForAll(req.params.order_id);
   }
