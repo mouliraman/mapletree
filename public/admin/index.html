@@ -15,6 +15,15 @@
 
     <meta name="google-signin-client_id" content="586562768921-kjkhej5uribmfmtdvrb5nf09pm3f4m6q.apps.googleusercontent.com">
 
+    <script src="https://apis.google.com/js/platform.js" ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
+    <script src="https://code.angularjs.org/1.4.6/angular-sanitize.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
+    <script src="/js/admin.js"></script>
+    <script src="/js/smart-table.js"></script>
+ 
   </head>
 
   <body>
@@ -139,10 +148,11 @@
               </tfoot>
             </table>
             <!--<a href="#" class="pull-right btn btn-success">Delivered</a>-->
-            <a ng-click="submitOrder()" class="pull-right btn btn-success">
+            <a ng-show="order_select.editable" ng-click="submitOrder()" class="pull-right btn btn-success">
               <span ng-show="!ajax_waiting">Save</span>
               <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
             </a>
+            <a ng-show="order_select.editable" href="/invoice.html?uid={{order_select.uid}}&order_id={{order_select.order_id}}">Invoice</a>
  
             <div class="clear"></div>
           </div>
@@ -210,15 +220,6 @@
 
     </div>
 
-    <script src="https://apis.google.com/js/platform.js" ></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
-    <script src="https://code.angularjs.org/1.4.6/angular-sanitize.js"></script>
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
-    <script src="/js/admin.js"></script>
-    <script src="/js/smart-table.js"></script>
- 
   </body>
 
 </html>

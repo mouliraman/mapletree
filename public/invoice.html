@@ -11,10 +11,13 @@
     <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/css/style.css" />
 
+    <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
+    <script src="https://code.angularjs.org/1.4.6/angular-sanitize.js"></script>
+    <script src="/js/invoice.js"></script>
 
   </head>
 
-  <body class="ng-cloak">
+  <body>
 
     <div class="container">
       <div class="header clearfix">
@@ -29,7 +32,7 @@
           <div class="page-header">
             <h1>Invoce </h1>
           </div>
-          <table class="table table-bordered table-hover">
+          <table ng-if="orders.length > 0" class="table table-bordered table-hover">
             <thead>
               <tr>
                 <th></th>
@@ -57,24 +60,17 @@
               </tr>
             </tfoot>
           </table>
-          <a href="#" ng-if="(current_order().length > 0)" class="btn btn-success pull-right" ng-click="submitOrder()">Submit Order</a>
-
 
         </div>
 
       </div>
+
+      <footer class="footer">
+        <p class="pull-right">v1.0</p>
+        <p>© 2016 Mapletree Farms</p>
+      </footer>
+
     </div>
-
-    <footer class="footer">
-      <p class="pull-right">v1.0</p>
-      <p>© 2016 Mapletree Farms</p>
-    </footer>
-
-    </div>
-
-    <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
-    <script src="https://code.angularjs.org/1.4.6/angular-sanitize.js"></script>
-    <script src="/js/invoice.js"></script>
 
   </body>
 
