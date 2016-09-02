@@ -166,15 +166,24 @@ function Db(cloud_storage) {
 
       for(var i =0;i<user_orders.length;i++) {
         var added = false;
+        var user_order = user_orders[i];
         for(var j=0;j<orders.length;j++) {
-          if (user_orders[i].description == orders[j].description) {
-            orders.quantity += user_orders[i].quantity;
+          if (user_order.description == orders[j].description) {
+            orders[j].quantity += user_order.quantity;
             added = true;
             break;
           }
         }
         if (!added) {
-          orders.push(user_orders[i]);
+          var new_order = {
+            description: user_order.description,
+            category: user_order.category,
+            unit: user_order.unit,
+            rate: user_order.rate,
+            quantity: user_order.quantity,
+            packed_quantity: user_order.packed_quantity
+          };
+          orders.push(new_order);
         }
       }
 
