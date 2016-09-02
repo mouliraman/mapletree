@@ -81,17 +81,20 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
 
       $scope.onGetOrders = function(response) {
         $scope.orders[response.order_id] = response.orders;
+
+        for (var i=0;i<$scope.orders[response.order_id].length;i++) {
+          var order = $scope.orders[response.order_id][i];
+          if (!order.packed_quantity) {
+            order.packed_quantity = 0;
+          }
+          order.quantity = Math.round(order.quantity * 1000)/1000;
+          order.price = $scope.price(order.rate, order.quantity);
+        }
+ 
         if ($scope.order_select.uid) {
           $scope.order_select.editable = true;
           $scope.order_select.state = response.state;
-          for (var i=0;i<$scope.orders[response.order_id].length;i++) {
-            var order = $scope.orders[response.order_id][i];
-            if (!order.packed_quantity) {
-              order.packed_quantity = 0;
-            }
-            order.price = $scope.price(order.rate, order.quantity);
-          }
-        } else {
+       } else {
           $scope.order_select.editable = false;
         }
       }
