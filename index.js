@@ -4,6 +4,9 @@ const Path = require('path');
 const Hapi = require('hapi');
 const Inert = require('inert');
 const Fs = require('fs');
+const Good = require('good');
+const Joi = require('joi');
+
 const Db = require('./db');
 
 // Create a server with a host and port
@@ -24,148 +27,142 @@ server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
 const db = new Db();
 
 // get profile information about the user
-server.route({method: 'GET', path:'/users/{uid}.json', handler: function(req, reply) {
-  if (req.params.uid == 'all') {
-    reply({status: 'success', users: db.data.users});
-  } else {
-    var u = db.getUserById(req.params.uid);
-    if (u) {
-      reply({status: 'success', profile: u});
+server.route({
+  method: 'GET',
+  path:'/users/{uid}.json',
+  handler: (req, reply) => {
+    if (req.params.uid == 'all') {
+      reply({status: 'success', users: db.data.users});
     } else {
-      reply({status: 'failed', reason: 'not found'});
+      var u = db.getUserById(req.params.uid);
+      if (u) {
+        reply({status: 'success', profile: u});
+      } else {
+        reply({status: 'failed', reason: 'not found'});
+      }
     }
   }
-}});
+});
 
 // register and set profile information about the user
-server.route({method: 'POST', path:'/users/{uid}.json', handler: function(req, reply) {
-  if (req.payload) {
-    if (db.updateUser(req.payload)) {
-      reply({status: 'success', profile: req.payload});
-    } else {
-      reply({status: 'failed', reason: 'profile does not contain all requested information'});
+server.route({
+  method: 'POST',
+  path:'/users/{uid}.json',
+  handler: (req, reply) => {
+    db.updateUser(req.payload);
+    reply({status: 'success', profile: req.payload});
+  },
+  config: {
+    validate: {
+      payload: Joi.object({
+        id: Joi.number().required(),
+        name: Joi.string().required(),
+        mobile: Joi.number().required(),
+        email: Joi.string().required(),
+        community: Joi.string().required(),
+      }).unknown()
     }
-  } else {
-    reply({status: 'failed', reason: 'mandatory param uid and/or profile not provided'});
   }
-}});
+});
 
 // signup a user
-server.route({method: 'POST', path:'/register.json', handler: function(req, reply) {
-  if (req.payload) {
+server.route({
+  method: 'POST',
+  path:'/register.json',
+  handler: (req, reply) => {
     var user = db.addUser(req.payload);
     if (user) {
       // TODO : Fire an email
       return reply({status: 'success', profile: user});
     } else {
-      return reply({status: 'failed', reason: 'user with email ' + req.payload.email + ' is already registered'});
+      return reply({statusCode: 400, error: 'Bad Request', message: 'user with email ' + req.payload.email + ' is already registered'}).code(400);
     }
-  } else {
-    reply({status: 'failed', reason: 'mandatory param uid and/or profile not provided'});
+  },
+  config: {
+    validate: {
+      payload: Joi.object({
+        email: Joi.string().email().required(),
+        password: Joi.string().min(6).required(),
+        name: Joi.string().required()
+      }).unknown()
+    }
   }
-}});
+});
 
 
 // login the user
-server.route({method: 'POST', path:'/login.json', handler: function(req, reply) {
+server.route({
+  method: 'POST',
+  path:'/login.json',
+  handler: (req, reply) => {
 
-  //setTimeout(function() {
-  if (!req.payload) {
-    reply({status: 'failed', reason: 'mandatory param uid and/or profile not provided'});
+    //setTimeout(function() {
+    var user = db.loginUser(req.payload.email, req.payload.password);
+    if (!user) {
+      return reply({statusCode: 400, error: "Bad Request", message: "user email and password don't match"}).code(400);
+    }
+
+    return reply({status: 'success', profile: user});
+    //}, 5000);
+  },
+  config: {
+    validate: {
+      payload: Joi.object({
+        email: Joi.string().email().required(),
+        password: Joi.string().required()
+      }).unknown()
+    }
   }
+});
 
-  if (!req.payload.email) {
-    return reply({status: 'failed', reason: 'no email address provided'});
-  }
-  if (!req.payload.password) {
-    return reply({status: 'failed', reason: 'no password provided'});
-  }
-
-  var user = db.loginUser(req.payload.email, req.payload.password);
-  if (!user) {
-    return reply({status: 'failed', reason: "user email and password don't match"});
-  }
-
-  return reply({status: 'success', profile: user});
-
-  //}, 5000);
-
-}});
-
-
-server.route({method: 'POST', path:'/data/orders/{order_id}.json', handler: function(req, reply) {
-  if (req.payload && req.query.uid) {
+server.route({
+  method: 'POST',
+  path:'/data/orders/{order_id}.json',
+  handler: (req, reply) => {
     db.storeOrder(req.query.uid, req.params.order_id, req.payload);
     reply({status: 'success'});
-  } else {
-    reply({status: 'failed', reason: 'mandatory param uid and/or orders not provided'});
-  }
-}});
-
-
-server.route({method: 'GET', path:'/data/orders/all.json', handler: function(req, reply) {
-  return reply(db.getOrdersForAll());
-}});
-
-server.route({method: 'GET', path:'/data/orders/community.json', handler: function(req, reply) {
-  if (req.query.community) {
-    reply(db.getOrdersForCommunity(req.query.community));
-  } else {
-    reply({status: 'failed', reason: 'mandatory param community not provided'});
-  }
-}});
-
-server.route({method: 'GET', path:'/data/orders/{order_id}.json', handler: function(req, reply) {
-  var ret = {order_id: req.params.order_id};
-  if (req.query.uid) {
-    ret.uid = req.query.uid;
-    ret.orders = db.getOrdersForUser(req.query.uid, req.params.order_id);
-  } else if (req.query.community) {
-    ret.community = req.query.community;
-    ret.orders = db.getOrdersForCommunity(req.query.community, req.params.order_id);
-  } else {
-    ret.orders = db.getOrdersForAll(req.params.order_id);
-  }
-  return reply(ret);
-}});
-
-server.route({method: 'GET', path:'/data/orders/{order_id}/user.json', handler: function(req, reply) {
-  if (req.query.uid) {
-    reply(db.getOrdersForUser(req.query.uid, req.params.order_id));
-  } else {
-    reply({status: 'failed', reason: 'mandatory param uid not provided'});
-  }
-}});
-
-// Add the route
-server.route({
-    method: 'POST',
-    path:'/{param*}', 
-    handler: function (request, reply) {
-
-      var dirs = request.path.split('/');
-      var base_path = Path.join(__dirname, 'public');
-      for (var i=0;i<dirs.length-1;i++) {
-        base_path = Path.join(base_path,dirs[i]);
-        console.log('checking path ' + base_path);
-        try {
-          Fs.accessSync(base_path);
-        } catch (e) {
-          console.log('making path ' + base_path);
-          Fs.mkdirSync(base_path);
-        }
+  },
+  config: {
+    validate: {
+      payload: Joi.array(),
+      query: {
+        uid: Joi.string().required()
+      },
+      params: {
+        order_id: Joi.string().required()
       }
-      const writable = Fs.createWriteStream(Path.join(__dirname, 'public', request.path));
-      console.log('request ' + request.path);
-      console.log('param   ' + request.payload);
-      request.payload.pipe(writable);
-      return reply('hello world');
-    },
-    config: {payload: {
-               output: 'stream',
-               parse: false
-             }
-            }
+    }
+  }
+});
+
+server.route({
+  method: 'GET', 
+  path:'/data/orders/{order_id}.json', 
+  handler: (req, reply) => {
+    var ret = {order_id: req.params.order_id};
+    if (req.query.uid) {
+      ret.uid = req.query.uid;
+      ret.orders = db.getOrdersForUser(req.query.uid, req.params.order_id);
+    } else if (req.query.community) {
+      ret.community = req.query.community;
+      ret.orders = db.getOrdersForCommunity(req.query.community, req.params.order_id);
+    } else {
+      ret.orders = db.getOrdersForAll(req.params.order_id);
+    }
+    return reply(ret);
+  }
+});
+
+server.route({
+  method: 'GET', 
+  path:'/data/orders/{order_id}/user.json', 
+  handler: (req, reply) => {
+    if (req.query.uid) {
+      reply(db.getOrdersForUser(req.query.uid, req.params.order_id));
+    } else {
+      reply({status: 'failed', reason: 'mandatory param uid not provided'});
+    }
+  }
 });
 
 // Serve static files
@@ -183,11 +180,33 @@ server.route({
   }
 });
 
-// Start the server
-server.start((err) => {
-
-    if (err) {
-        throw err;
+server.register({
+  register: Good,
+  options: {
+    reporters: {
+      console: [{
+        module: 'good-squeeze',
+        name: 'Squeeze',
+        args: [{ log: '*', response: '*' }]
+      }, {
+        module: 'good-console'
+      }, 'stdout']/*,
+      file: [{
+        module: 'good-file',
+        args: ['./log/hapi.log']
+      }]*/
     }
-    console.log('Server running at:', server.info.uri);
+  }
+}, (err) => {
+  if (err) {
+    throw err; // something bad happened loading the plugin
+  }
+
+  server.start((err) => {
+    if (err) {
+      throw err; // something bad happened loading the plugin
+    }
+    server.log('info', 'Server running at: ' + server.info.uri);
+  });
 });
+
