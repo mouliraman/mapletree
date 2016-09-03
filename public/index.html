@@ -180,7 +180,10 @@
               </tr>
             </tfoot>
           </table>
-          <a href="#" ng-if="(current_order().length > 0)" class="btn btn-success pull-right" ng-click="submitOrder()">Submit Order</a>
+          <a href="#" ng-if="(current_order().length > 0)" class="btn btn-success pull-right" ng-click="submitOrder()">
+            <span ng-show="!ajax_waiting">Submit Order</span>
+            <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
+          </a>
 
 
         </div>
@@ -316,13 +319,6 @@
         </div>
       </div>
 
-      <div class="modal fade" tabindex="-1" id="loadingModel" role="dialog">
-        <div class="modal-dialog modal-sm" role="document">
-          <div class="modal-content" style="text-align: center">
-            <img src="/images/gears.svg" />
-          </div>
-        </div>
-      </div>
     </div>
 
 
