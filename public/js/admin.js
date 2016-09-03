@@ -150,7 +150,22 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
 
       $scope.download_csv = function(d) {
         var data = $scope.orders[$scope.order_select.order_id];
-        var CSV = "S.No,Description,Rate,Unit,Quantity,Price\r\n";
+        var CSV = "";
+        var user;
+
+        CSV += ",Mapletree Farms,,,,INVOICE\r\n";
+        CSV += "\r\n";
+        CSV += "To\r\n";
+        if ($scope.order_select.uid) {
+          user = $scope.user_id_mapping[$scope.order_select.uid];
+          CSV += "," + user.name + "\r\n";
+        } else if ($scope.order_select.community) {
+          CSV += ", Order for " + $scope.order_select.community + "\r\n";
+        } else {
+          CSV += ", Order for All\r\n";
+        }
+        CSV += "\r\n";
+        CSV += "S.No,Description,Rate,Unit,Quantity,Price\r\n";
         
         for (var i=0; i<data.length; i++) {
           CSV += i+1;
@@ -161,11 +176,27 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
           CSV += ',' + (data[i].rate * data[i].quantity);
           CSV += "\r\n";
         }
+        CSV += "\r\n";
+        CSV += ",Total Amount,,,," + $scope.totalPrice() + "\r\n";
+        CSV += "\r\n";
+        CSV += "\r\n";
+        CSV += "Account Details :\r\n";
+        CSV += "Mapletree Farms Pvt. Ltd.\r\n";
+        CSV += "A/C No: 914020043283947\r\n";
+        CSV += "Axis Bank, Jayanagar Branch, Bangalore\r\n";
+        CSV += "IFSC Code: UTIB0000052\r\n";
+
         var uri = 'data:application/csv;charset=utf-8,' + escape(CSV);
         var link = document.createElement("a");
         link.href = uri;
         link.style = "visibility:hidden";
-        link.download = $scope.order_select.order_id + ".csv";
+        if ($scope.order_select.uid) {
+          link.download = $scope.order_select.order_id + "-" + $scope.order_select.community + "-" + user.name + ".csv";
+        } else if ($scope.order_select.community) {
+          link.download = $scope.order_select.order_id + "-" + $scope.order_select.community + ".csv";
+        } else {
+          link.download = $scope.order_select.order_id + ".csv";
+        }
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

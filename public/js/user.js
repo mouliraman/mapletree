@@ -32,11 +32,10 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       }
 
       $scope.onProfle = function(data) {
-        console.log('onProfle');
+        $scope.ajax_waiting = false;
         if (data.status == 'success') {
           $scope.current_user = data.profile;
           $scope.new_user = false;
-          console.log('user is registered');
         }
         $http.get('/data/communities.json').success($scope.onCommunityInformation);
       }
@@ -104,7 +103,6 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       }
 
       $scope.onUserOrders = function (data) {
-        console.log('onUserOrders');
         for (var i = 0;i<data.length;i++) {
           for (var j = 0;i<$scope.skus.length;j++) {
             if ($scope.skus[j].description == data[i].description) {
@@ -121,7 +119,6 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       $scope.options = {
         'onsuccess': function(response) {
           var profile = response.getBasicProfile();
-          console.log(profile);
           $scope.onLogin({id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()});
         },
         'onfailure': function(response) {
@@ -150,13 +147,23 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
           }
           $scope.ajax_waiting = false;
         }).error(function (err) {
-          $scope.error_message = "Something went wrong !! Please try again.";
+          if (err.message) {
+            $scope.error_message = err.message;
+          } else {
+            $scope.error_message = "Something went wrong !! Please try again.";
+          }
           $scope.ajax_waiting = false;
         });
       }
 
       $scope.registerUser = function() {
-        $http.post('/users/' + $scope.current_user.id + '.json', $scope.current_user).success($scope.onProfle);
+        $scope.ajax_waiting = true;
+        $scope.error_message = null;
+        $http.post('/users/' + $scope.current_user.id + '.json', $scope.current_user).success($scope.onProfle).error(function (err) {
+          console.log(err);
+          $scope.error_message = err.message;
+          $scope.ajax_waiting = false;
+        });
       }
 
       $scope.navigateTo = function(dest) {
@@ -179,11 +186,14 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
 
       $scope.submitOrder = function() {
         if ($scope.check_if_shop_is_open()) {
-          $('#loadingModel').modal('show');
+          $scope.ajax_waiting = true;
           $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id, $scope.current_order()).success(function () {
-            $('#loadingModel').modal('hide');
             $scope.warning_message = $scope.error_message = null;
             $scope.success_message = "Congratulations !! Your order has been placed";
+            $scope.ajax_waiting = false;
+          }).error(function (err) {
+            $scope.error_message = err.message;
+            $scope.ajax_waiting = false;
           });
         } else {
           $scope.error_message = "Sorry. Your order window is closed. You cannot place order.";
@@ -193,7 +203,6 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       $scope.signOut = function() {
         var auth2 = gapi.auth2.getAuthInstance();
         auth2.signOut().then(function () {
-          console.log('User signed out.');
           $scope.$apply(function () {
             $scope.current_user = null;
             $scope.current_community = null;
@@ -242,7 +251,6 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
 
       $scope.check_if_shop_is_open = function () {
         var d = new Date(); // today's date
-        console.log('start day ' + $scope.current_community.start_day + ', end_day ' + $scope.current_community.end_day);
         var open_day_index = $scope.get_weekday($scope.current_community.start_day);
         var close_day_index = $scope.get_weekday($scope.current_community.end_day);
         var current_day_index = d.getDay();
@@ -261,13 +269,10 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         else if (close_day_index == current_day_index) {
           // The shop will close today. Are you late?
           var end_time = $scope.get_time($scope.current_community.end_time);
-          console.log(end_time);
-          console.log(new Date());
           if (end_time < new Date()) {
             $scope.error_message = "The shopping window has closed for today.";
           } else {
             $scope.warning_message = "The shopping window is closing today. Place order before " + $scope.current_community.end_time ;
-            console.log("same day as closing day");
             $scope.shop_open = true;
           }
         }
@@ -278,13 +283,11 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
           current_day_index = (current_day_index - open_day_index + 7) % 7;
           if (current_day_index < close_day_index) {
             // Phew.. we have time to order
-            console.log('can place order');
             $scope.shop_open = true;
           } else {
             var x = new Date();
             x.setDate(x.getDate() + ((7 + open_day_index - x.getDay()) % 7));
             $scope.error_message = "Your window to place order is not open.</br>You can come back at <b>" + $scope.current_community.start_time + "</b> on <b>" + x.toString().split(' ').slice(0,3).join(' ') + "</b> to place the order.";
-            console.log('cannot place order');
             // Sorry. You need to wait for couple of days
           }
         }
