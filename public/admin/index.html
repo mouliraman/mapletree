@@ -111,7 +111,10 @@
             </div>
 
             <a class="pull-right btn btn-success" ng-if="orders[order_select.order_id].length > 0" ng-click="download_csv(d)" href="#">Download</a>
-            <h4>{{order_select.order_id}}</h4>
+            <h4>
+              <span>Order for {{order_select.order_id}}</span>
+              <span ng-show="order_select.community">, {{order_select.community}}</span>
+              <span ng-show="order_select.uid">, {{user_id_mapping[order_select.uid].name}}</span></h4>
 
             <table ng-if="orders[order_select.order_id].length > 0" class="table table-bordered table-hover">
               <thead>
