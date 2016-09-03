@@ -67,7 +67,7 @@ function Db(cloud_storage) {
   } else {
     this.load = this.load_fs;
     this.save = this.save_fs;
-    this.load(function() {console.log('file loaded')});
+    this.load(() => {});
   }
 
   this.getUser = function(prop, value) {
@@ -79,8 +79,8 @@ function Db(cloud_storage) {
     }
     return null;
   }
-  this.getUserById = function(id) { return this.getUser('id', id);}
-  this.getUserByEmail = function(email) { return this.getUser('email', email);}
+  this.getUserById = (id) => { return this.getUser('id', id);}
+  this.getUserByEmail = (email) => { return this.getUser('email', email);}
 
   this.loginUser = function(email, password) {
     var u = this.getUserByEmail(email);
