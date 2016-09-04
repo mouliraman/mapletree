@@ -9,6 +9,7 @@ function Db(cloud_storage) {
     this.bucket_file = this.bucket.file('database.json');
   } else {
     this.db_file = 'public/data/database.json';
+    this.community_file = 'public/data/communities.json';
   }
 
   this.load_fs = function(completeCallback) {
@@ -20,6 +21,16 @@ function Db(cloud_storage) {
     if (this.data == null) {
       this.data = {users: [], orders: {all: [], user: {}, community: {}}};
     }
+    this.communities = {};
+    if (Fs.existsSync(this.community_file)) {
+      var buf = Fs.readFileSync(this.community_file);
+      var d = JSON.parse(buf.toString());
+      console.log(d);
+      for (var i = 0;i<d.length;i++) {
+        this.communities[d[i].name] = d[i];
+      }
+    }
+
     return completeCallback(null);
   }
 
