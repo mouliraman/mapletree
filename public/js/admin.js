@@ -1,4 +1,4 @@
-angular.module('myApp', ['ngSanitize', 'smart-table'])
+angular.module('mapletreeAdmin', [])
 .controller('mainCtrl', ['$scope', '$http', '$filter',
     function ($scope, $http, $filter) {
 
@@ -232,6 +232,3 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
   };
 });
 
-$( document ).ready(function() {
-  console.log('dcoument loaoded');
-});

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="myApp" ng-controller="mainCtrl">
+<html lang="en" ng-app="mapletreeUser" ng-controller="mainCtrl">
 
   <head>
     <meta charset="utf-8">
@@ -14,12 +14,10 @@
 
     <meta name="google-signin-client_id" content="586562768921-kjkhej5uribmfmtdvrb5nf09pm3f4m6q.apps.googleusercontent.com">
 
-    <!--<script src="https://apis.google.com/js/platform.js" async defer></script>-->
     <script src="https://apis.google.com/js/platform.js"></script>
-    <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
-    <script src="https://code.angularjs.org/1.4.6/angular-sanitize.js"></script>
-    <script src="/js/user.js"></script>
-    <script src="/js/smart-table.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-sanitize.min.js"></script>
+    <script src="/js/app.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
  
@@ -50,7 +48,7 @@
             <li><a ng-click="navigateTo('preferences')" href="#">Preferences</a></li>
             <li role="separator" class="divider"></li>
             <li ng-if="current_user.admin"><a href="/admin">Admin</a></li>
-            <li><a ng-click="signOut()" href="#">Logout</a></li>
+            <li><a ng-click="signOut()" href="/">Logout</a></li>
           </ul>
         </div>
 
@@ -75,7 +73,7 @@
 
       <div ng-if="!current_user" class="jumbotron">
         <h1>Mapletree Fresh Produce</h1>
-        <p class="lead">Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+        <p class="lead">Mapletree Farms is our humble endeavor to connect organic farmers directly to the consumers. Our farm is located near Hosur and we supply vegetables directly to our customers in Bangalore. Weekly once. Get in touch with us to know how we can supply fresh organic farm produce to your doorstep.</p>
         <p><a class="btn btn-lg btn-success" href="#" data-toggle="modal" data-target="#signupModel" ng-click="user.action = 'register'" role="button">Sign up today</a></p>
         <!--<google-sign-in-button class="btn btn-lg btn-success" button-id="uniqueid" options="options"></google-sign-in-button>-->
       </div>
@@ -110,7 +108,7 @@
             <div ng-repeat="c in categories" ng-class="{'active': $index == 0}" role="tabpanel" class="tab-pane" id="category-{{$index}}">
               <h4>{{c}}</h4>
 
-              <table ng-if="loaded" st-table="skus" class="table table-bordered table-hover">
+              <table ng-if="loaded" class="table table-bordered table-hover">
                 <thead>
                   <tr>
                     <th></th>
@@ -152,7 +150,7 @@
           </div>
           <p ng-if="!shop_open">Please wait for your shopping window to open to access shopping cart</p>
           <p ng-if="shop_open && (current_order().length == 0)">You have not added any items to your shopping cart</p>
-          <table ng-if="current_order().length > 0" st-table="skus" class="table table-bordered table-hover">
+          <table ng-if="current_order().length > 0" class="table table-bordered table-hover">
             <thead>
               <tr>
                 <th></th>
@@ -266,7 +264,7 @@
               <div class="panel panel-default">
                 <div class="panel-body">
                   <p>If you have a google account, you can sign-in using google.</p>
-                  <google-sign-in-button button-id="uniqueid" options="options"></google-sign-in-button>
+                  <google-sign-in-button ng-if="!noGoogle" button-id="uniqueid" options="options"></google-sign-in-button>
                 </div>
               </div>
               <p> OR</p>

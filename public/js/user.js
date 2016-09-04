@@ -1,4 +1,4 @@
-angular.module('myApp', ['ngSanitize', 'smart-table'])
+angular.module('mapletreeUser', ['ngSanitize'])
 .controller('mainCtrl', ['$scope', '$http', '$filter',
     function ($scope, $http, $filter) {
 
@@ -22,6 +22,7 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
        */
 
       $scope.onLogin = function(profile) {
+        localStorage.setItem('uid',profile.id);
         $scope.current_user = profile;
         $http.get('/users/' + profile.id + '.json').success($scope.onProfle);
         $scope.app_loaded = false;
@@ -31,7 +32,7 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         //});
       }
 
-      $scope.onProfle = function(data) {
+     $scope.onProfle = function(data) {
         $scope.ajax_waiting = false;
         if (data.status == 'success') {
           $scope.current_user = data.profile;
@@ -201,15 +202,16 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
       }
 
       $scope.signOut = function() {
-        var auth2 = gapi.auth2.getAuthInstance();
-        auth2.signOut().then(function () {
-          $scope.$apply(function () {
-            $scope.current_user = null;
-            $scope.current_community = null;
-            $scope.skus = [];
-            $scope.user = {};
+        localStorage.setItem('uid','undefined');
+        if (gapi.auth2) {
+          var auth2 = gapi.auth2.getAuthInstance();
+          auth2.signOut().then(function () {
+            window.location = "/";
           });
-        });
+        } else {
+          window.location = "/";
+        }
+        return false;
       }
 
       $scope.totalPrice = function () {
@@ -295,6 +297,14 @@ angular.module('myApp', ['ngSanitize', 'smart-table'])
         return $scope.shop_open;
       }
 
+
+      $scope.noGoogle = false;
+      var uid = localStorage.getItem('uid');
+      if ((uid) && (uid != 'undefined')) {
+        $scope.noGoogle = true;
+        $scope.onLogin({id: uid});
+      }
+ 
     }
 ])
 .filter('unique', function() {
