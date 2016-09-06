@@ -25,7 +25,6 @@ function Db(cloud_storage) {
     if (Fs.existsSync(this.community_file)) {
       var buf = Fs.readFileSync(this.community_file);
       var d = JSON.parse(buf.toString());
-      console.log(d);
       for (var i = 0;i<d.length;i++) {
         this.communities[d[i].name] = d[i];
       }
