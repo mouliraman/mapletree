@@ -6,6 +6,7 @@ const Inert = require('inert');
 const Fs = require('fs');
 const Good = require('good');
 const Joi = require('joi');
+const exec = require('child_process').exec;
 
 const Db = require('./db');
 
@@ -162,6 +163,17 @@ server.route({
     } else {
       reply({status: 'failed', reason: 'mandatory param uid not provided'});
     }
+  }
+});
+
+server.route({
+  method: 'POST',
+  path:'/data/sync',
+  handler: (req, reply) => {
+    var v = exec('./export');
+    v.on('exit', function (code, signal) {
+      return reply({status: 'success'});
+    });
   }
 });
 
