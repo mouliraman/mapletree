@@ -7,11 +7,28 @@ angular.module('mapletreeAdmin', [])
       $scope.app_loaded = true;
       $scope.orders = [];
       $scope.order_select = {};
+      $scope.last_sync_time = "fetching....";
 
       $scope.format_date = function (d) {
         return [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
       }
       $scope.order_select.order_id = $scope.format_date(new Date());
+
+      $scope.fetch_sync_date = function () {
+        $http.get('/export.date').success(function (res) {
+          $scope.last_sync_time = res;
+        });
+      }
+
+      $scope.sync_db = function () {
+        $scope.ajax_waiting = true;
+        $http.post('/data/sync').success(function (res) {
+          $scope.ajax_waiting = false;
+          $scope.fetch_sync_date();
+        }).error(function (err) {
+          $scope.ajax_waiting = false;
+        });
+      }
 
       $scope.getUsersPerCommunity = function () {
         if (($scope.users) && ($scope.communities)) {
@@ -120,6 +137,7 @@ angular.module('mapletreeAdmin', [])
           $scope.current_user = response.profile;
           $http.get('/users/all.json').success($scope.onGetAllUsers);
           $http.get('/data/communities.json').success($scope.onCommunityInformation);
+          $scope.fetch_sync_date();
         } else {
           $scope.error_message = "Only admin users have access to this page";
           $scope.signOut();

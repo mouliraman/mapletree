@@ -76,6 +76,11 @@
           <div role="tabpanel" class="tab-pane active" id="dashboard">
             <h4>Dashboard</h4>
  
+            <p>Communities and Price list were last synced at {{last_sync_time}}</p>
+            <p><a href="#" ng-click="sync_db()">
+              <span ng-show="!ajax_waiting">Sync Again</span>
+              <span ng-show="ajax_waiting">fetching....</span>
+            </a></p>
           </div>
 
           <div role="tabpanel" class="tab-pane " id="orders">
