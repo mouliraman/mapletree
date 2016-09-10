@@ -114,13 +114,13 @@
               </div>
             </div>
 
-            <a class="pull-right btn btn-success" ng-if="orders[order_select.order_id].length > 0" ng-click="download_csv(d)" href="#">Download</a>
+            <a class="pull-right btn btn-success" ng-if="order.items.length > 0" ng-click="download_csv(d)" href="#">Download</a>
             <h4>
               <span>Order for {{order_select.order_id}}</span>
               <span ng-show="order_select.community">, {{order_select.community}}</span>
               <span ng-show="order_select.uid">, {{user_id_mapping[order_select.uid].name}}</span></h4>
 
-            <table ng-if="orders[order_select.order_id].length > 0" class="table table-bordered table-hover">
+            <table ng-if="order.items.length > 0" class="table table-bordered table-hover">
               <thead>
                 <tr>
                   <th></th>
@@ -134,7 +134,7 @@
                 </tr>
               </thead> 
               <tbody>
-                <tr ng-repeat="row in orders[order_select.order_id]" ng-class="{success: row.quantity == row.packed_quantity, danger: (row.packed_quantity > 0) && (row.quantity != row.packed_quantity)}">
+                <tr ng-repeat="row in order.items" ng-class="{success: row.quantity == row.packed_quantity, danger: (row.packed_quantity > 0) && (row.quantity != row.packed_quantity)}">
                   <td>{{$index+1}}</td>
                   <td>{{row.description}}</td>
                   <td>{{row.rate}}</td>
@@ -175,6 +175,7 @@
                   <th>Phone</th>
                   <th>Email</th>
                   <th>Community</th>
+                  <th colspan=2>Door No:</th>
                 </tr>
               </thead> 
               <tbody>
@@ -184,6 +185,12 @@
                   <td>{{row.mobile}}</td>
                   <td>{{row.email}}</td>
                   <td>{{row.community}}</td>
+                  <td>
+                    <input type="text" ng-model="row.door_number" ng-change="saveUserInfo(row)"/>
+                  </td>
+                  <td>
+                    <span ng-show="spin[row.id]" class="glyphicon glyphicon-refresh spinning"></span>
+                  </td>
                 </tr>
               </tbody>
             </table>

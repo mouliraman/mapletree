@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="myApp" ng-controller="mainCtrl">
+<html lang="en">
 
   <head>
     <meta charset="utf-8">
@@ -11,28 +11,20 @@
     <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/css/style.css" />
 
-    <script data-require="angular.js@1.4.6" data-semver="1.4.6" src="https://code.angularjs.org/1.4.6/angular.js"></script>
-    <script src="https://code.angularjs.org/1.4.6/angular-sanitize.js"></script>
-    <script src="/js/invoice.js"></script>
-
   </head>
 
-  <body>
+  <body style="font-size:10px">
 
     <div class="container">
-      <div class="header clearfix">
-
-        <h3 class="text-muted">Mapletree Farms</h3>
-      </div>
-
       <div >
         <!-- Not signed in user landing page -->
 
         <div id="shopping-cart">
           <div class="page-header">
-            <h1>Invoice </h1>
+            <h1 class="pull-right">Invoice </h1>
+            <h3>Mapletree Farms</h3>
           </div>
-          <table ng-if="orders.length > 0" class="table table-bordered table-hover">
+          <table class="table table-bordered table-striped">
             <thead>
               <tr>
                 <th></th>
@@ -44,19 +36,21 @@
               </tr>
             </thead> 
             <tbody>
-              <tr ng-repeat="row in orders">
-                <td>{{$index+1}}</td>
-                <td>{{row.description}}</td>
-                <td>{{row.rate}}</td>
-                <td>{{row.unit}}</td>
-                <td><span class="quantity">{{row.quantity}}</span></td>
-                <td><span class="cost">&#8377; {{price(row.rate, row.quantity)}}</span></td>
+              {{#each items}}
+              <tr>
+                <td></td>
+                <td>{{description}}</td>
+                <td>{{rate}}</td>
+                <td>{{unit}}</td>
+                <td><span class="quantity">{{quantity}}</span></td>
+                <td><span class="cost">&#8377; {{price}}</span></td>
               </tr>
+              {{/each}}
             </tbody>
             <tfoot>
               <tr>
                 <td colspan=5 style="text-align: right">Total</td>
-                <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
+                <td><span class="cost">&#8377;{{total_price}}</span></td>
               </tr>
             </tfoot>
           </table>

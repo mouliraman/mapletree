@@ -126,7 +126,7 @@
                     <td>{{row.rate}}</td>
                     <td>{{row.unit}}</td>
                     <td ng-if="shop_open"><input type="number" class="quantity" ng-model="row.quantity"></td>
-                    <td ng-if="shop_open"><span class="cost" ng-show="row.quantity > 0">&#8377; {{row.rate * row.quantity}}</span></td>
+                    <td ng-if="shop_open"><span class="cost" ng-show="row.quantity > 0">&#8377; {{price(row.rate, row.quantity)}}</span></td>
                   </tr>
                 </tbody>
                 <tfoot ng-if="shop_open">
@@ -168,7 +168,7 @@
                 <td>{{row.rate}}</td>
                 <td>{{row.unit}}</td>
                 <td><span class="quantity">{{row.quantity}}</span></td>
-                <td><span class="cost">&#8377; {{row.rate * row.quantity}}</span></td>
+                <td><span class="cost">&#8377; {{price(row.rate, row.quantity)}}</span></td>
               </tr>
             </tbody>
             <tfoot>

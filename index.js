@@ -97,14 +97,12 @@ server.route({
   path:'/login.json',
   handler: (req, reply) => {
 
-    //setTimeout(function() {
     var user = db.loginUser(req.payload.email, req.payload.password);
     if (!user) {
       return reply({statusCode: 400, error: "Bad Request", message: "user email and password don't match"}).code(400);
     }
 
     return reply({status: 'success', profile: user});
-    //}, 5000);
   },
   config: {
     validate: {
@@ -125,7 +123,9 @@ server.route({
   },
   config: {
     validate: {
-      payload: Joi.array(),
+      payload: Joi.object({
+        items: Joi.array()
+      }).unknown(),
       query: {
         uid: Joi.string().required()
       },
@@ -140,16 +140,17 @@ server.route({
   method: 'GET', 
   path:'/data/orders/{order_id}.json', 
   handler: (req, reply) => {
-    var ret = {order_id: req.params.order_id};
+    var ret;
     if (req.query.uid) {
+      ret = db.getOrdersForUser(req.query.uid, req.params.order_id);
       ret.uid = req.query.uid;
-      ret.orders = db.getOrdersForUser(req.query.uid, req.params.order_id);
     } else if (req.query.community) {
+      ret = db.getOrdersForCommunity(req.query.community, req.params.order_id);
       ret.community = req.query.community;
-      ret.orders = db.getOrdersForCommunity(req.query.community, req.params.order_id);
     } else {
-      ret.orders = db.getOrdersForAll(req.params.order_id);
+      ret = db.getOrdersForAll(req.params.order_id);
     }
+    ret.order_id = req.params.order_id;
     return reply(ret);
   }
 });
@@ -177,6 +178,21 @@ server.route({
   }
 });
 
+server.route({
+  method: 'GET',
+  path:'/data/invoice/{uid}/{order_id}',
+  handler: (req, reply) => {
+    var order = db.getOrdersForUser(req.params.uid, req.params.order_id);
+    var items = order.items;
+    order.total_price = 0;
+    for (var i = 0 ; i < items.length ; i++ ) {
+      items[i].price = Math.round(items[i].quantity * items[i].rate * 100)/100;
+      order.total_price += items[i].price;
+    }
+    reply.view('invoice',order);
+  }
+});
+
 // Serve static files
 server.register(Inert, () => {});
 
@@ -190,6 +206,16 @@ server.route({
                  index: true
                }
   }
+});
+
+server.register(require('vision'), (err) => {
+  server.views({
+    engines: {
+      html: require('handlebars')
+    },
+    relativeTo: __dirname,
+    path: 'templates'
+  });
 });
 
 server.register({

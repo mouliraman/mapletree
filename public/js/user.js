@@ -104,11 +104,12 @@ angular.module('mapletreeUser', ['ngSanitize'])
       }
 
       $scope.onUserOrders = function (data) {
-        for (var i = 0;i<data.length;i++) {
+        $scope.customer_instructions = data.customer_instructions;
+        for (var i = 0;i<data.items.length;i++) {
           for (var j = 0;i<$scope.skus.length;j++) {
-            if ($scope.skus[j].description == data[i].description) {
-              $scope.skus[j].quantity = data[i].quantity;
-              $scope.skus[j].price = data[i].price;
+            if ($scope.skus[j].description == data.items[i].description) {
+              $scope.skus[j].quantity = data.items[i].quantity;
+              $scope.skus[j].price = data.items[i].price;
               break;
             }
           }
@@ -188,7 +189,13 @@ angular.module('mapletreeUser', ['ngSanitize'])
       $scope.submitOrder = function() {
         if ($scope.check_if_shop_is_open()) {
           $scope.ajax_waiting = true;
-          $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id, $scope.current_order()).success(function () {
+          var order = {
+            state: 'ordered',
+            customer_instructions : $scope.customer_instructions,
+            items: $scope.current_order()
+          };
+
+          $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id, order).success(function () {
             $scope.warning_message = $scope.error_message = null;
             $scope.success_message = "Congratulations !! Your order has been placed";
             $scope.ajax_waiting = false;
@@ -212,6 +219,10 @@ angular.module('mapletreeUser', ['ngSanitize'])
           window.location = "/";
         }
         return false;
+      }
+
+      $scope.price = function(a,b) {
+        return(Math.round(a * b * 100)/100);
       }
 
       $scope.totalPrice = function () {

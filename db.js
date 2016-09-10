@@ -92,8 +92,19 @@ function Db(cloud_storage) {
   this.getUserById = (id) => { return this.getUser('id', id);}
   this.getUserByEmail = (email) => { return this.getUser('email', email);}
 
+  this.getInvoiceId = (order_id,uid) => {
+    for(var i = 0; i<this.data.users.length; i++) {
+      var u = this.data.users[i];
+      if (u.id == uid) {
+        var x = '' + (i + 1000001);
+        return order_id.replace(/-/g,'') + x;
+      }
+    }
+    return '000000';
+  }
+
   this.loginUser = function(email, password) {
-    var u = this.getUserByEmail(email);
+    var u = this.getUserByEmail(email.toLowerCase());
 
     if (u) {
 
@@ -109,7 +120,7 @@ function Db(cloud_storage) {
   }
 
   this.addUser = function(user) {
-    var u = this.getUserByEmail(user.email);
+    var u = this.getUserByEmail(user.email.toLowerCase());
     if (u) {
       return false;
     }
@@ -132,6 +143,8 @@ function Db(cloud_storage) {
 
   this.updateUser = function(user) {
     var mandatory_keys = ['id', 'name', 'mobile', 'email', 'community'];
+    // downcase the email
+    user.email = user.email.toLowerCase();
     for (var i=0;i<mandatory_keys.length;i++) {
       if (Object.keys(user).indexOf(mandatory_keys[i]) == -1) {
         return false;
@@ -150,18 +163,37 @@ function Db(cloud_storage) {
   }
 
   this.getOrdersForUser = function(uid, order_id) {
-    if (this.data.orders) {
-      if (this.data.orders[uid]) {
-        return this.data.orders[uid][order_id] || [];
+    if ((this.data.orders) &&
+        (this.data.orders[uid]) &&
+        (this.data.orders[uid][order_id])
+        ) {
+
+      if (!this.data.orders[uid][order_id].invoice_id) {
+        this.data.orders[uid][order_id].invoice_id = this.getInvoiceId(order_id,uid);
+        this.save();
       }
+      return this.data.orders[uid][order_id];
     }
-    return [];
+    return {items: []};
+  }
+
+  this.clone_order = (order) => {
+    var new_order = {
+      description: order.description,
+      category: order.category,
+      unit: order.unit,
+      rate: order.rate,
+      quantity: order.quantity,
+      packed_quantity: order.packed_quantity
+    };
+    return new_order;
+ 
   }
 
   this.getOrdersForCommunity = function(community, order_id) {
-    var orders = [];
+    var items = [];
     if (this.data.orders == null) {
-      return orders;
+      return items;
     }
 
     var uids = Object.keys(this.data.orders);
@@ -174,38 +206,30 @@ function Db(cloud_storage) {
 
       var user_orders = this.getOrdersForUser(uid, order_id);
 
-      for(var i =0;i<user_orders.length;i++) {
+      for(var i =0;i<user_orders.items.length;i++) {
         var added = false;
-        var user_order = user_orders[i];
-        for(var j=0;j<orders.length;j++) {
-          if (user_order.description == orders[j].description) {
-            orders[j].quantity += user_order.quantity;
+        var user_order = user_orders.items[i];
+        for(var j=0;j<items.length;j++) {
+          if (user_order.description == items[j].description) {
+            items[j].quantity += user_order.quantity;
             added = true;
             break;
           }
         }
         if (!added) {
-          var new_order = {
-            description: user_order.description,
-            category: user_order.category,
-            unit: user_order.unit,
-            rate: user_order.rate,
-            quantity: user_order.quantity,
-            packed_quantity: user_order.packed_quantity
-          };
-          orders.push(new_order);
+          items.push(this.clone_order(user_order));
         }
       }
 
     }
 
-    return orders;
+    return {items: items};
   }
 
   this.getOrdersForAll = function(order_id) {
-    var orders = [];
+    var items = [];
     if (this.data.orders == null) {
-      return orders;
+      return items;
     }
 
     var uids = Object.keys(this.data.orders);
@@ -213,33 +237,43 @@ function Db(cloud_storage) {
       var uid = uids[x];
       var user_orders = this.getOrdersForUser(uid, order_id);
 
-      for(var i =0;i<user_orders.length;i++) {
+      for(var i =0;i<user_orders.items.length;i++) {
+        var user_order = user_orders.items[i];
         var added = false;
-        for(var j=0;j<orders.length;j++) {
-          if (user_orders[i].description == orders[j].description) {
-            orders.quantity += user_orders[i].quantity;
+
+        for(var j=0;j<items.length;j++) {
+          if (user_order.description == items[j].description) {
+            items[j].quantity += user_order.quantity;
             added = true;
             break;
           }
         }
         if (!added) {
-          orders.push(user_orders[i]);
+          items.push(this.clone_order(user_order));
         }
       }
 
     }
 
-    return orders;
+    return {items: items};
   }
 
-  this.storeOrder = function(uid, order_id, orders) {
+  this.storeOrder = function(uid, order_id, order) {
     if (this.data.orders == null) {
       this.data.orders = {};
     }
     if (this.data.orders[uid] == null) {
       this.data.orders[uid] = {};
     }
-    this.data.orders[uid][order_id] = orders;
+    if (this.data.orders[uid][order_id]) {
+      /* Copy all the keys */
+      var keys = Object.keys(order);
+      for (var i = 0 ; i < keys.length ; i++){
+        this.data.orders[uid][order_id][keys[i]] = order[keys[i]];
+      }
+    } else {
+      this.data.orders[uid][order_id] = order;
+    }
     return this.save();
   }
 

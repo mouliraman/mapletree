@@ -1,13 +1,12 @@
-angular.module('mapletreeAdmin', [])
+angular.module('mapletreeAdmin', ['ngSanitize'])
 .controller('mainCtrl', ['$scope', '$http', '$filter',
     function ($scope, $http, $filter) {
 
-      $scope.nav = 'order-page';
-      $scope.new_user = true;
       $scope.app_loaded = true;
-      $scope.orders = [];
+      $scope.order = {items: []};
       $scope.order_select = {};
       $scope.last_sync_time = "fetching....";
+      $scope.spin = {};
 
       $scope.format_date = function (d) {
         return [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
@@ -79,7 +78,7 @@ angular.module('mapletreeAdmin', [])
       }
 
       $scope.totalPrice = function (packed) {
-        var skus = $scope.orders[$scope.order_select.order_id];
+        var skus = $scope.order.items;
         var ret = 0;
         for (var i=0;i<skus.length;i++) {
           if (packed) {
@@ -97,32 +96,46 @@ angular.module('mapletreeAdmin', [])
       }
 
       $scope.onGetOrders = function(response) {
-        $scope.orders[response.order_id] = response.orders;
+        $scope.order = response;
 
-        for (var i=0;i<$scope.orders[response.order_id].length;i++) {
-          var order = $scope.orders[response.order_id][i];
-          if (!order.packed_quantity) {
-            order.packed_quantity = 0;
+        for (var i=0;i<$scope.order.items.length;i++) {
+          var item = $scope.order.items[i];
+          if (!item.packed_quantity) {
+            item.packed_quantity = 0;
           }
-          order.quantity = Math.round(order.quantity * 1000)/1000;
-          order.price = $scope.price(order.rate, order.quantity);
+          item.quantity = Math.round(item.quantity * 1000)/1000;
+          item.price = $scope.price(item.rate, item.quantity);
         }
  
         if ($scope.order_select.uid) {
           $scope.order_select.editable = true;
-          $scope.order_select.state = response.state;
        } else {
           $scope.order_select.editable = false;
         }
       }
 
+      $scope.saveUserInfo = function(user) {
+        $scope.spin[user.id] = true;
+        $http.post('/users/' + user.id + '.json', user).success(function (c){
+          $scope.spin[user.id] = false;
+        }).error(function(err) {
+          $scope.spin[user.id] = false;
+        });
+        console.log('saving user ' + user.email + ' door number ' + user.door_number);
+      }
       $scope.submitOrder = function() {
-        console.log('calling submitOrder');
         $scope.ajax_waiting = true;
+        $scope.order.state = 'packing';
+
         if ($scope.order_select.order_id && $scope.order_select.uid) {
           $http.post('/data/orders/' + $scope.order_select.order_id + '.json?uid=' + $scope.order_select.uid, 
-              $scope.orders[$scope.order_select.order_id]).success(function () {
-            $scope.warning_message = $scope.error_message = null;
+              $scope.order).success(function (response) {
+            if (response.error) {
+              console.log(response.message);
+              $scope.error_message = response.message;
+            } else {
+              $scope.warning_message = $scope.error_message = null;
+            }
             $scope.ajax_waiting = false;
           }).error(function (err) {
             $scope.error_message = "Something went wrong !! Please try again.";
@@ -167,7 +180,7 @@ angular.module('mapletreeAdmin', [])
       }
 
       $scope.download_csv = function(d) {
-        var data = $scope.orders[$scope.order_select.order_id];
+        var data = $scope.order.items;
         var CSV = "";
         var user;
 
