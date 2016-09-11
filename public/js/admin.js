@@ -128,7 +128,7 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
         $scope.order.state = 'packing';
 
         if ($scope.order_select.order_id && $scope.order_select.uid) {
-          $http.post('/data/orders/' + $scope.order_select.order_id + '.json?uid=' + $scope.order_select.uid, 
+          $http.post('/data/orders/' + $scope.order_select.order_id + '.json?admin=1&uid=' + $scope.order_select.uid, 
               $scope.order).success(function (response) {
             if (response.error) {
               console.log(response.message);

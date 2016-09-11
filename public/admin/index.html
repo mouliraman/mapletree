@@ -159,7 +159,7 @@
               <span ng-show="!ajax_waiting">Save</span>
               <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
             </a>
-            <a ng-show="order_select.editable" href="/invoice.html?uid={{order_select.uid}}&order_id={{order_select.order_id}}">Invoice</a>
+            <a ng-show="order_select.editable" href="/data/invoice/{{order_select.uid}}/{{order_select.order_id}}">Invoice</a>
  
             <div class="clear"></div>
           </div>

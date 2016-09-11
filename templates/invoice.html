@@ -21,13 +21,40 @@
 
         <div id="shopping-cart">
           <div class="page-header">
-            <h1 class="pull-right">Invoice </h1>
-            <h3>Mapletree Farms</h3>
+            <h3>
+              <span class="pull-right">Invoice</span>
+              Mapletree Farms
+            </h3>
           </div>
-          <table class="table table-bordered table-striped">
+          
+          <table class="invoice pull-right">
+            <tr>
+              <td><strong>Invoice No.</strong></td><td>{{invoice_id}}</td>
+            </tr>
+            <tr>
+              <td><strong>Date</strong></td><td>{{date}}</td>
+            </tr>
+          </table>
+
+          <table class="invoice">
+            <tr>
+              <td style="vertical-align:top"><strong>Bill To:</strong></td>
+              <td>{{user.name}}</br>
+                {{#if user.door_number}}
+                {{user.door_number}}</br>
+                {{/if}}
+                {{user.community}}</br>
+                {{user.mobile}}</br>
+                {{user.email}}</br>
+                Bangalore</br>
+              </td>
+            </tr>
+          </table>
+
+          <table class="invoice-table table table-bordered table-striped">
             <thead>
               <tr>
-                <th></th>
+                <th>S.No.</th>
                 <th>Description</th>
                 <th>Rate</th>
                 <th>Unit</th>
@@ -38,7 +65,7 @@
             <tbody>
               {{#each items}}
               <tr>
-                <td></td>
+                <td>{{inc @index}}</td>
                 <td>{{description}}</td>
                 <td>{{rate}}</td>
                 <td>{{unit}}</td>
@@ -49,8 +76,19 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan=5 style="text-align: right">Total</td>
+                <td colspan=4 rowspan=4></td>
+              </tr>
+              <tr>
+                <td style="text-align: right">Sub Total</td>
                 <td><span class="cost">&#8377;{{total_price}}</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: right">Discount</td>
+                <td><span class="cost">&#8377;{{discount}}</span></td>
+              </tr>
+              <tr>
+                <td style="text-align: right"><strong>Total</strong></td>
+                <td><span class="cost"><strong>&#8377;{{discount_price}}</strong></span></td>
               </tr>
             </tfoot>
           </table>
@@ -58,6 +96,14 @@
         </div>
 
       </div>
+
+      <p>Please make the payment online by transferring the amount using the following details</p>
+      <p><strong>Account Details :</strong></br>
+      Mapletree Farms Pvt. Ltd.			</br>
+      A/C No: 914020043283947			</br>
+      Axis Bank	 Jayanagar Branch	 Bangalore	</br>
+      IFSC Code: UTIB0000052			</br>
+      </p>
 
       <footer class="footer">
         <p class="pull-right">v1.0</p>

@@ -1,5 +1,4 @@
-function Email() {
-  var api_key = 'key-c8af7d35c98a3581d0496f4e07d7703c';
+function Email(api_key) {
   var domain = 'revu.in';
   var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
 
@@ -18,6 +17,33 @@ function Email() {
     message.text += "If you have any questions or feedback on our service, do get in touch with us.\n\n";
     message.text += "Thanks\n";
     message.text += "-Shankar\n";
+
+    mailgun.messages().send(message, function (error, body) {
+      if (error) {
+        console.log('email:error: failed to send email ' + error);
+      }
+    });
+  }
+
+  this.send_invoice = (user, order, order_id) => {
+
+    var message = {
+      from: 'Mapletree Farms <no-reply@revu.in>',
+      to: user.email,
+      subject: '[Mapletree Farms] Order Confirmation',
+    }
+
+    var url;
+    if (process.env.PORT == 3000) {
+      url = "http://localhost:3000/data/invoice/" + user.id + "/" + order_id;
+    } else {
+      url = "http://mpt.revu.in/data/invoice/" + user.id + "/" + order_id;
+    }
+    message.html = "<p>Dear " + user.name + ",</p>";
+    message.html += "<p>Thank you for placing your organic and fresh veggies order at http://mpt.revu.in. We have received an order worth Rs. " + order.discount_price + "/-.</p>";
+    message.html += "<p>You can view your current order <a href=\"" + url + "\">here</a>.\nYou can modify and submit the order any number of times before the end of your window. The last modified order will be taken for delivery.</p>";
+    message.html += "<p>Thanks</p>";
+    message.html += "<p>-Mapletree Farms</p>";
 
     mailgun.messages().send(message, function (error, body) {
       if (error) {

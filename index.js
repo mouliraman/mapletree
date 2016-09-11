@@ -9,6 +9,7 @@ const Joi = require('joi');
 const exec = require('child_process').exec;
 
 const Db = require('./db');
+const Email = require('./email');
 
 // Create a server with a host and port
 const server = new Hapi.Server({
@@ -26,6 +27,10 @@ const server = new Hapi.Server({
 server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
 
 const db = new Db();
+if (!process.env.MAILGUN_KEY) {
+  throw('Please provide MAILGUN_KEY as env variable');
+}
+const email = new Email(process.env.MAILGUN_KEY);
 
 // get profile information about the user
 server.route({
@@ -118,17 +123,26 @@ server.route({
   method: 'POST',
   path:'/data/orders/{order_id}.json',
   handler: (req, reply) => {
-    db.storeOrder(req.query.uid, req.params.order_id, req.payload);
-    reply({status: 'success'});
+    var user = db.getUserById(req.query.uid);
+    if (user) {
+      db.storeOrder(req.query.uid, req.params.order_id, req.payload);
+      var order = db.getOrdersForUser(req.query.uid, req.params.order_id);
+      if (!req.query.admin) {
+        email.send_invoice(user, order, req.params.order_id);
+      }
+      reply({status: 'success'});
+    } else {
+      reply({statusCode: 400, error: 'Bad Request', message: 'user id ' + req.query.uid + 'does not exist'}).code(400);
+    }
   },
   config: {
     validate: {
       payload: Joi.object({
         items: Joi.array()
       }).unknown(),
-      query: {
+      query: Joi.object({
         uid: Joi.string().required()
-      },
+      }).unknown(),
       params: {
         order_id: Joi.string().required()
       }
@@ -183,12 +197,8 @@ server.route({
   path:'/data/invoice/{uid}/{order_id}',
   handler: (req, reply) => {
     var order = db.getOrdersForUser(req.params.uid, req.params.order_id);
-    var items = order.items;
-    order.total_price = 0;
-    for (var i = 0 ; i < items.length ; i++ ) {
-      items[i].price = Math.round(items[i].quantity * items[i].rate * 100)/100;
-      order.total_price += items[i].price;
-    }
+    order.user = db.getUserById(req.params.uid);
+    order.date = req.params.order_id;
     reply.view('invoice',order);
   }
 });
@@ -208,10 +218,18 @@ server.route({
   }
 });
 
+const Handlebars = require('handlebars');
+Handlebars.registerHelper("inc", (value, options) => {
+  return parseInt(value) + 1;
+});
+
 server.register(require('vision'), (err) => {
   server.views({
     engines: {
-      html: require('handlebars')
+      html: {
+        module: Handlebars,
+        compileMode: 'sync'
+      }
     },
     relativeTo: __dirname,
     path: 'templates'

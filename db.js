@@ -163,18 +163,31 @@ function Db(cloud_storage) {
   }
 
   this.getOrdersForUser = function(uid, order_id) {
+    var order = {items: [], total_price: 0, discount_price: 0, invoice_id: 'xxxxx'};
+
     if ((this.data.orders) &&
         (this.data.orders[uid]) &&
         (this.data.orders[uid][order_id])
         ) {
 
-      if (!this.data.orders[uid][order_id].invoice_id) {
-        this.data.orders[uid][order_id].invoice_id = this.getInvoiceId(order_id,uid);
+      var order = this.data.orders[uid][order_id];
+      if (!order.invoice_id) {
+        order.invoice_id = this.getInvoiceId(order_id,uid);
         this.save();
       }
-      return this.data.orders[uid][order_id];
+      var total_price = 0;
+      for (var i = 0 ; i < order.items.length ; i++ ) {
+        var item = order.items[i];
+        item.price = Math.round(item.quantity * item.rate * 100)/100;
+        total_price += item.price;
+      }
+      order.total_price = Math.round(total_price * 100)/100;
+      if (!order.discount) {
+        order.discount = 0;
+      }
+      order.discount_price = order.total_price - order.discount;
     }
-    return {items: []};
+    return order;
   }
 
   this.clone_order = (order) => {
@@ -192,6 +205,7 @@ function Db(cloud_storage) {
 
   this.getOrdersForCommunity = function(community, order_id) {
     var items = [];
+    var users = [];
     if (this.data.orders == null) {
       return items;
     }
@@ -205,6 +219,14 @@ function Db(cloud_storage) {
       }
 
       var user_orders = this.getOrdersForUser(uid, order_id);
+      if (user_orders.items.length == 0) {
+        continue;
+      }
+
+      var u = this.getUserById(uid);
+      var uu = {name: u.name, email: u.email, mobile: u.mobile};
+      uu.total_price = user_orders.total_price;
+      users << uu;
 
       for(var i =0;i<user_orders.items.length;i++) {
         var added = false;
@@ -223,7 +245,7 @@ function Db(cloud_storage) {
 
     }
 
-    return {items: items};
+    return {items: items, users: users};
   }
 
   this.getOrdersForAll = function(order_id) {

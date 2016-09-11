@@ -120,6 +120,19 @@ body {
     -webkit-animation: spin2 1s infinite linear;
 }
 
+.invoice td {
+  padding: 5px;
+}
+
+.invoice-table tbody tr td {
+  font-size: 8px;
+  padding: 4px;
+}
+
+.invoice td:first-child {
+  text-align: right;
+}
+
 @keyframes spin {
     from { transform: scale(1) rotate(0deg); }
     to { transform: scale(1) rotate(360deg); }
