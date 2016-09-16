@@ -38,6 +38,22 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
         }
       }
 
+      $scope.get_weekday = function(w) {
+        var weekday = ['sunday', 'monday','tuesday','wednesday','thursday','friday','saturday'];
+        return weekday[w];
+      }
+      $scope.communitiesForDay = function (d) {
+        var dd = new Date(d);
+        var end_day = $scope.get_weekday(dd.getDay());
+        var c = [];
+        for (var i = 0 ; i< $scope.communities.length;i++) {
+          if (($scope.communities[i].end_day == end_day) && ($scope.communities.state = 'active')) {
+            c.push($scope.communities[i]);
+          }
+        }
+        return(c);
+      }
+
       $scope.onGetAllUsers = function(response) {
         $scope.users = response.users;
         $scope.user_id_mapping = {};
@@ -131,7 +147,6 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
           $http.post('/data/orders/' + $scope.order_select.order_id + '.json?admin=1&uid=' + $scope.order_select.uid, 
               $scope.order).success(function (response) {
             if (response.error) {
-              console.log(response.message);
               $scope.error_message = response.message;
             } else {
               $scope.warning_message = $scope.error_message = null;

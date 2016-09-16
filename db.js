@@ -203,12 +203,37 @@ function Db(cloud_storage) {
  
   }
 
-  this.getOrdersForCommunity = function(community, order_id) {
+  this.getOrderList = () => {
     var items = [];
-    var users = [];
-    if (this.data.orders == null) {
-      return items;
+    var comm_file = 'public/data/data.json';
+    if (Fs.existsSync(comm_file)) {
+      var buf = Fs.readFileSync(comm_file);
+      items = JSON.parse(buf.toString());
+      for(var i =0;i<items.length;i++) {
+        items[i].quantity = 0;
+      }
     }
+
+    return items;
+  }
+
+  this.compactOrderList = (items) => {
+    var new_items = [];
+    for (var i=0;i<items.length;i++) {
+      if (items[i].quantity > 0) {
+        new_items.push(items[i]);
+      }
+    }
+    return new_items;
+  }
+
+  this.getOrdersForCommunity = function(community, order_id) {
+    if (this.data.orders == null) {
+      return [];
+    }
+
+    var items = this.getOrderList();
+    var users = [];
 
     var uids = Object.keys(this.data.orders);
     for (var x=0;x<uids.length;x++) {
@@ -224,9 +249,9 @@ function Db(cloud_storage) {
       }
 
       var u = this.getUserById(uid);
-      var uu = {name: u.name, email: u.email, mobile: u.mobile};
+      var uu = {name: u.name, email: u.email, mobile: u.mobile, uid: u.id};
       uu.total_price = user_orders.total_price;
-      users << uu;
+      users.push(uu);
 
       for(var i =0;i<user_orders.items.length;i++) {
         var added = false;
@@ -245,14 +270,14 @@ function Db(cloud_storage) {
 
     }
 
-    return {items: items, users: users};
+    return {items: this.compactOrderList(items), users: users};
   }
 
   this.getOrdersForAll = function(order_id) {
-    var items = [];
     if (this.data.orders == null) {
-      return items;
+      return [];
     }
+    var items = this.getOrderList();
 
     var uids = Object.keys(this.data.orders);
     for (var x=0;x<uids.length;x++) {
@@ -277,7 +302,7 @@ function Db(cloud_storage) {
 
     }
 
-    return {items: items};
+    return {items: this.compactOrderList(items)};
   }
 
   this.storeOrder = function(uid, order_id, order) {

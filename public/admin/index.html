@@ -95,15 +95,16 @@
                 </div>
               </div>
 
-              <div class="col-lg-4">
+              <div class="col-lg-4" ng-if="communities">
                 <div class="input-group">
                   <select ng-change="fetchOrder()" ng-model="order_select.community" class="form-control">
                     <option>--- Please Select ---</option>
-                    <option ng-repeat="c in communities | filter: {state: 'active'} : true">{{c.name}}</option>
+                    <option ng-repeat="c in communitiesForDay(order_select.order_id)">{{c.name}}</option>
                   </select>
                 </div>
               </div>
 
+              <!--
               <div class="col-lg-4">
                 <div class="input-group">
                   <select ng-change="fetchOrder()" ng-model="order_select.uid" class="form-control">
@@ -112,13 +113,32 @@
                   </select>
                 </div>
               </div>
+              -->
             </div>
 
             <a class="pull-right btn btn-success" ng-if="order.items.length > 0" ng-click="download_csv(d)" href="#">Download</a>
             <h4>
               <span>Order for {{order_select.order_id}}</span>
-              <span ng-show="order_select.community">, {{order_select.community}}</span>
-              <span ng-show="order_select.uid">, {{user_id_mapping[order_select.uid].name}}</span></h4>
+              <span ng-show="order_select.community">, <a href="#" ng-click="order_select.uid = null;fetchOrder()">{{order_select.community}}</a></span>
+              <span ng-show="order_select.uid">, {{user_id_mapping[order_select.uid].name}}</span>
+            </h4>
+
+            <table ng-if="order.users && (order.users.length > 0)" class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Mobile</th>
+                  <th>Bill Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="user in order.users">
+                  <td><a href="#" ng-click="order_select.uid=user.uid;fetchOrder()">{{user.name}}</a></td>
+                  <td>{{user.mobile}}</td>
+                  <td>&#8377; {{user.total_price}}</td>
+                </tr>
+              </tbody>
+            </table>
 
             <table ng-if="order.items.length > 0" class="table table-bordered table-hover">
               <thead>
