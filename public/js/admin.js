@@ -7,11 +7,16 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
       $scope.order_select = {};
       $scope.last_sync_time = "fetching....";
       $scope.spin = {};
+      $scope.selected_community_index = -1;
 
       $scope.format_date = function (d) {
         return [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
       }
       $scope.order_select.order_id = $scope.format_date(new Date());
+
+      $scope.select_community = function (c) {
+        $scope.selected_community_index = c;
+      }
 
       $scope.fetch_sync_date = function () {
         $http.get('/export.date').success(function (res) {

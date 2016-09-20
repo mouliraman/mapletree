@@ -194,12 +194,23 @@
                   <th>Name</th>
                   <th>Phone</th>
                   <th>Email</th>
-                  <th>Community</th>
+                  <th>
+                    <div class="dropdown">
+                      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        Community
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li><a href="#" ng-click="select_community(-1)">All</a></li>
+                        <li ng-repeat="c in communities"><a href="#" ng-click="select_community($index)" ng-class="{'btn-success': communities[selected_community_index] == '{{c.name}}'}">{{c.name}}</a></li>
+                      </ul>
+                    </div>
+                  </th>
                   <th colspan=2>Door No:</th>
                 </tr>
               </thead> 
               <tbody>
-                <tr ng-repeat="row in users" ng-class="{success: row.admin}">
+                <tr ng-repeat="row in ((selected_community_index == -1) ? users : communities[selected_community_index].users)" ng-class="{success: row.admin}">
                   <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
                   <td>{{row.name}}</td>
                   <td>{{row.mobile}}</td>
