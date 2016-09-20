@@ -2,6 +2,29 @@ function Email(api_key) {
   var domain = 'revu.in';
   var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
 
+  this.door_number = (user) => {
+    var message = {
+      from: 'Mapletree Farms <no-reply@revu.in>',
+      to: user.email,
+      subject: '[Mapletree Farms] Update your Door Number',
+    }
+
+    message.text = "Dear User " + user.name + ",\n\n";
+    message.text += "We request you to update your Door number in the Preferences page. As soon as you login, you can select Preferences from Top-Left menu (\"My Account\").\n\n";
+    message.text += "Then you can enter your Door number and then click on Save.\n\n";
+    message.text += "This will record your door number and will help us deliver to the right address. Please ignore if Door number is not applicable to your community.\n\n";
+    message.text += "Thanks\n";
+    message.text += "-Shankar\n";
+    message.text += "http://mpt.revu.in\n";
+
+    mailgun.messages().send(message, function (error, body) {
+      if (error) {
+        console.log('email:error: failed to send email ' + error);
+      }
+    });
+
+  }
+
   this.welcome = (user) => {
 
     var message = {
