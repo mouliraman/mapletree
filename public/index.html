@@ -217,6 +217,10 @@
                   </td>
                 </tr>
                 <tr>
+                  <td>Door Number</td>
+                  <td><input type="text" ng-model="current_user.door_number"></td>
+                </tr>
+                <tr>
                   <td></td>
                   <td><a class="btn btn-lg btn-success" href="#" ng-click="registerUser()">Proceed</a></td>
                 </tr>
@@ -227,7 +231,7 @@
               <tbody>
                 <tr>
                   <td>Name</td>
-                  <td>{{current_user.name}}</td>
+                  <td><input type="text" ng-model="current_user.name"></td>
                 </tr>
                 <tr>
                   <td>Email Address</td>
@@ -242,8 +246,16 @@
                   <td>{{current_user.community}}</td>
                 </tr>
                 <tr>
+                  <td>Door Number</td>
+                  <td><input type="text" ng-model="current_user.door_number"></td>
+                </tr>
+                <tr>
                   <td>Address</td>
                   <td>{{current_community.address}}</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td><a class="btn btn-lg btn-success" href="#" ng-click="registerUser()">Save</a></td>
                 </tr>
               </tbody>
             </table>
