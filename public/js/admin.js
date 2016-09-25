@@ -230,6 +230,10 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
         CSV += "\r\n";
         CSV += ",Total Amount,,,," + $scope.totalPrice() + "\r\n";
         CSV += "\r\n";
+        CSV += "Customer Instructions :,\r\n";
+        if ($scope.order.customer_instructions) {
+          CSV += $scope.order.customer_instructions + ",\r\n";
+        }
         CSV += "\r\n";
         CSV += "Account Details :\r\n";
         CSV += "Mapletree Farms Pvt. Ltd.\r\n";
