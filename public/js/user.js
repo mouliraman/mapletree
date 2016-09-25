@@ -104,7 +104,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
       }
 
       $scope.onUserOrders = function (data) {
-        $scope.customer_instructions = data.customer_instructions;
+        $scope.order = data;
         for (var i = 0;i<data.items.length;i++) {
           for (var j = 0;i<$scope.skus.length;j++) {
             if ($scope.skus[j].description == data.items[i].description) {
@@ -174,6 +174,12 @@ angular.module('mapletreeUser', ['ngSanitize'])
         } else {
           $scope.nav = 'preferences';
         }
+
+        if ($scope.nav == 'orders') {
+          $http.get('/data/orders/'+current_user.id+'/index.json').success( function (res) {
+            $scope.order_history = res.order_history;
+          });
+        }
       }
 
       $scope.current_order = function () {
@@ -191,7 +197,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
           $scope.ajax_waiting = true;
           var order = {
             state: 'ordered',
-            customer_instructions : $scope.customer_instructions,
+            customer_instructions : $scope.order.customer_instructions,
             items: $scope.current_order()
           };
 
