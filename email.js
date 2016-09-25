@@ -65,6 +65,10 @@ function Email(api_key) {
     message.html = "<p>Dear " + user.name + ",</p>";
     message.html += "<p>Thank you for placing your organic and fresh veggies order at http://mpt.revu.in. We have received an order worth Rs. " + order.discount_price + "/-.</p>";
     message.html += "<p>You can view your current order <a href=\"" + url + "\">here</a>.\nYou can modify and submit the order any number of times before the end of your window. The last modified order will be taken for delivery.</p>";
+    if ((order.customer_instructions) && (order.customer_instructions.length > 0)){
+      message.html += "<p>Following is the instructions you have provided along with the order.<p>\n";
+      message.html += "<p>" + order.customer_instructions + "</p>\n";
+    }
     message.html += "<p>Thanks</p>";
     message.html += "<p>-Mapletree Farms</p>";
 
