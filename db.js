@@ -131,9 +131,9 @@ function Db(cloud_storage) {
     user.password = hash.digest('hex');
  
     // Generate a unique ID
-    uid = Math.round(Math.random() * 10000000000000000);
+    uid = Math.round(Math.random() * 9000000000000000);
     while (this.getUserById(uid)) {
-      uid = Math.round(Math.random() * 10000000000000000);
+      uid = Math.round(Math.random() * 9000000000000000);
     }
     user.id = uid;
     this.data.users.push(user);
@@ -160,6 +160,25 @@ function Db(cloud_storage) {
     }
     this.data.users.push(user);
     return this.save();
+  }
+
+  this.getOrderListForUser = (user) => {
+    var ret = [];
+    if ((this.data.orders) && (this.data.orders[user.id])) {
+      order_ids = Object.keys(this.data.orders[user.id]);
+      for (var i=0;i<order_ids.length;i++) {
+        var order = this.data.orders[user.id][order_ids[i]];
+        ret.push({
+          state: order.state,
+          order_id: order.order_id,
+          invoice_id: order.invoice_id,
+          discount: order.discount,
+          total_price: order.total_price,
+          discount_price: order.discount_price
+        });
+      }
+    }
+    return ret;
   }
 
   this.getOrdersForUser = function(uid, order_id) {
