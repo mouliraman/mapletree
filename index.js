@@ -152,6 +152,21 @@ server.route({
 
 server.route({
   method: 'GET', 
+  path:'/data/orders/{uid}/index.json', 
+  handler: (req, reply) => {
+    var ret;
+    var user = db.getUserById(req.params.uid);
+    if (user) {
+      return reply({'order_history' : db.getOrdersForUser(user)});
+    } else {
+      return reply({statusCode: 400, error: 'User Not Found', message: 'user id does not exist'}).code(400);
+    }
+  }
+});
+
+
+server.route({
+  method: 'GET', 
   path:'/data/orders/{order_id}.json', 
   handler: (req, reply) => {
     var ret;
