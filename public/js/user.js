@@ -23,6 +23,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
 
       $scope.onLogin = function(profile) {
         localStorage.setItem('uid',profile.id);
+        console.log('setting uid ' + profile.id);
         $scope.current_user = profile;
         $http.get('/users/' + profile.id + '.json').success($scope.onProfle);
         $scope.app_loaded = false;
@@ -120,8 +121,11 @@ angular.module('mapletreeUser', ['ngSanitize'])
 
       $scope.options = {
         'onsuccess': function(response) {
+          console.log('google logged in');
           var profile = response.getBasicProfile();
-          $scope.onLogin({id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()});
+          if (!$scope.current_user) {
+            $scope.onLogin({id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()});
+          }
         },
         'onfailure': function(response) {
           console.log('failed to login');
@@ -216,12 +220,15 @@ angular.module('mapletreeUser', ['ngSanitize'])
 
       $scope.signOut = function() {
         localStorage.setItem('uid','undefined');
+        console.log('setting uid undefined');
         if (gapi.auth2) {
           var auth2 = gapi.auth2.getAuthInstance();
           auth2.signOut().then(function () {
+            console.log('signed out of google');
             window.location = "/";
           });
         } else {
+          console.log('signed out of password based authentication');
           window.location = "/";
         }
         return false;
@@ -314,9 +321,16 @@ angular.module('mapletreeUser', ['ngSanitize'])
         return $scope.shop_open;
       }
 
+      $scope.remove_float = function(item) {
+        if ((item.unit.toLowerCase() == 'piece') || (item.unit.toLowerCase() == 'bunch')) {
+          item.quantity = Math.floor(item.quantity);
+        }
+      }
+
 
       $scope.noGoogle = false;
       var uid = localStorage.getItem('uid');
+      console.log('getting uid ' + uid);
       if ((uid) && (uid != 'undefined')) {
         $scope.noGoogle = true;
         $scope.onLogin({id: uid});
