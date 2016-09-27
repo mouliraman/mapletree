@@ -125,7 +125,7 @@
                     <td>{{row.description}}</td>
                     <td>{{row.rate}}</td>
                     <td>{{row.unit}}</td>
-                    <td ng-if="shop_open"><input type="number" class="quantity" ng-model="row.quantity"></td>
+                    <td ng-if="shop_open"><input type="number" class="quantity" ng-model="row.quantity" ng-change="remove_float(row)"></td>
                     <td ng-if="shop_open"><span class="cost" ng-show="row.quantity > 0">&#8377; {{price(row.rate, row.quantity)}}</span></td>
                   </tr>
                 </tbody>
@@ -139,8 +139,11 @@
 
             </div>
           </div>
-          <a ng-if="shop_open" href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Shopping Cart</a>
+          <a ng-if="shop_open" href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Check Out</a>
+          <div class="clearfix"></div>
 
+          <h4>Please Note</h4>
+          <p>If you wish to order 100 grams, please enter <strong>0.1</strong> as quantity. If you wish to order 250 grams, please enter <strong>0.25</strong>. <strong>Pieces</strong> and <strong>Bunches</strong> cannot be entered in decimal. You must provide whole number such as <strong>1</strong> or <strong>2</strong>.</p>
         </div>
 
 
@@ -150,7 +153,9 @@
           </div>
           <p ng-if="!shop_open">Please wait for your shopping window to open to access shopping cart</p>
           <p ng-if="shop_open && (current_order().length == 0)">You have not added any items to your shopping cart</p>
-          <table ng-if="current_order().length > 0" class="table table-bordered table-hover">
+          <div ng-if="current_order().length > 0">
+          <h4>ITEMS</h4>
+          <table class="table table-bordered table-hover">
             <thead>
               <tr>
                 <th></th>
@@ -178,6 +183,10 @@
               </tr>
             </tfoot>
           </table>
+
+          <h4>DELIVERY INSTRUCTIOS</h4>
+          <textarea ng-model="order.customer_instructions" class="form-control" rows="3"></textarea>
+
           <a href="#" ng-if="(current_order().length > 0)" class="btn btn-success pull-right" ng-click="submitOrder()">
             <span ng-show="!ajax_waiting">Submit Order</span>
             <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
@@ -190,7 +199,23 @@
 
         <div ng-if="nav == 'orders'" id="orders">
           <div class="page-header">
-            <h1>My Orders</h1>
+            <h1>My Past Orders</h1>
+            <table ng-if="order_history" class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th>Order Date</th>
+                  <th>Invoice ID</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="order in order_history">
+                  <th>{{order.order_id}}</th>
+                  <th>{{order.invoice_id}}</th>
+                  <th>{{order.discount_price}}</th>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
