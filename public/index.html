@@ -20,7 +20,7 @@
     <script src="/js/app.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
- 
+
   </head>
 
   <body class="ng-cloak">
@@ -63,73 +63,120 @@
 
         <h3 class="text-muted"><a href="#" ng-click="navigateTo('order-page')">Mapletree Farms</a></h3>
       </div>
-    
+
       <div ng-if="!app_loaded" class="jumbotron">
         <img src="/images/gears.svg" />
       </div>
 
       <div ng-if="app_loaded">
-      <!-- Not signed in user landing page -->
+        <!-- Not signed in user landing page -->
 
-      <div ng-if="!current_user" class="jumbotron">
-        <h1>Mapletree Fresh Produce</h1>
-        <p class="lead">Mapletree Farms is our humble endeavor to connect organic farmers directly to the consumers. Our farm is located near Hosur and we supply vegetables directly to our customers in Bangalore. Weekly once. Get in touch with us to know how we can supply fresh organic farm produce to your doorstep.</p>
-        <p><a class="btn btn-lg btn-success" href="#" data-toggle="modal" data-target="#signupModel" ng-click="user.action = 'register'" role="button">Sign up today</a></p>
-        <!--<google-sign-in-button class="btn btn-lg btn-success" button-id="uniqueid" options="options"></google-sign-in-button>-->
-      </div>
-
-      <div ng-if="current_user" class="row">
-
-        <div ng-if="error_message" class="alert alert-danger">
-          <p ng-bind-html="error_message"></p>
+        <div ng-if="!current_user" class="jumbotron">
+          <h1>Mapletree Fresh Produce</h1>
+          <p class="lead">Mapletree Farms is our humble endeavor to connect organic farmers directly to the consumers. Our farm is located near Hosur and we supply vegetables directly to our customers in Bangalore. Weekly once. Get in touch with us to know how we can supply fresh organic farm produce to your doorstep.</p>
+          <p><a class="btn btn-lg btn-success" href="#" data-toggle="modal" data-target="#signupModel" ng-click="user.action = 'register'" role="button">Sign up today</a></p>
+          <!--<google-sign-in-button class="btn btn-lg btn-success" button-id="uniqueid" options="options"></google-sign-in-button>-->
         </div>
 
-        <div ng-if="!error_message && warning_message" class="alert alert-warning">
-          <p ng-bind-html="warning_message"></p>
-        </div>
+        <div ng-if="current_user" class="row">
 
-        <div ng-if="!error_message && !warning_message && success_message" class="alert alert-success">
-          <p ng-bind-html="success_message"></p>
-        </div>
-
-        <!-- Dashboard when user logs in -->
-        <div ng-if="nav == 'order-page'" id="order-page">
-          <div class="page-header">
-            <h1>Fresh Produce</h1>
+          <div ng-if="error_message" class="alert alert-danger">
+            <p ng-bind-html="error_message"></p>
           </div>
 
-          <ul class="nav nav-tabs" role="tablist">
-            <li ng-repeat="c in categories" role="presentation" ng-class="{'active': $index == 0}">
-            <a href="#category-{{$index}}" aria-controls="category-{{$index}}" role="tab" data-toggle="tab">{{c}}</a>
-            </li>
-          </ul>
+          <div ng-if="!error_message && warning_message" class="alert alert-warning">
+            <p ng-bind-html="warning_message"></p>
+          </div>
 
-          <div class="tab-content">
-            <div ng-repeat="c in categories" ng-class="{'active': $index == 0}" role="tabpanel" class="tab-pane" id="category-{{$index}}">
-              <h4>{{c}}</h4>
+          <div ng-if="!error_message && !warning_message && success_message" class="alert alert-success">
+            <p ng-bind-html="success_message"></p>
+          </div>
 
-              <table ng-if="loaded" class="table table-bordered table-hover">
+          <!-- Dashboard when user logs in -->
+          <div ng-if="nav == 'order-page'" id="order-page">
+            <div class="page-header">
+              <h1>Fresh Produce</h1>
+            </div>
+
+            <ul class="nav nav-tabs" role="tablist">
+              <li ng-repeat="c in categories" role="presentation" ng-class="{'active': $index == 0}">
+              <a href="#category-{{$index}}" aria-controls="category-{{$index}}" role="tab" data-toggle="tab">{{c}}</a>
+              </li>
+            </ul>
+
+            <div class="tab-content">
+              <div ng-repeat="c in categories" ng-class="{'active': $index == 0}" role="tabpanel" class="tab-pane" id="category-{{$index}}">
+                <h4>{{c}}</h4>
+
+                <table ng-if="loaded" class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Description</th>
+                      <th>Rate</th>
+                      <th>Unit</th>
+                      <th ng-if="shop_open">Quantity</th>
+                      <th ng-if="shop_open" class="price">Price</th>
+                    </tr>
+                  </thead> 
+                  <tbody>
+                    <tr ng-repeat="row in skus" ng-if="c == row.category" ng-class="{success: (row.quantity > 0)}">
+                      <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
+                      <td>{{row.description}}</td>
+                      <td>{{row.rate}}</td>
+                      <td>{{row.unit}}</td>
+                      <td ng-if="shop_open"><input type="number" class="quantity" ng-model="row.quantity" ng-change="remove_float(row)"></td>
+                      <td ng-if="shop_open"><span class="cost" ng-show="row.quantity > 0">&#8377; {{price(row.rate, row.quantity)}}</span></td>
+                    </tr>
+                  </tbody>
+                  <tfoot ng-if="shop_open">
+                    <tr>
+                      <td colspan=5 style="text-align: right">Total</td>
+                      <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+              </div>
+            </div>
+            <a ng-if="shop_open" href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Check Out</a>
+            <div class="clearfix"></div>
+
+            <h4>Please Note</h4>
+            <p>If you wish to order 100 grams, please enter <strong>0.1</strong> as quantity. If you wish to order 250 grams, please enter <strong>0.25</strong>. <strong>Pieces</strong> and <strong>Bunches</strong> cannot be entered in decimal. You must provide whole number such as <strong>1</strong> or <strong>2</strong>.</p>
+          </div>
+
+
+          <div ng-if="nav == 'shopping-cart'" id="shopping-cart">
+            <div class="page-header">
+              <h1>Shopping Cart</h1>
+            </div>
+            <p ng-if="!shop_open">Please wait for your shopping window to open to access shopping cart</p>
+            <p ng-if="shop_open && (current_order().length == 0)">You have not added any items to your shopping cart</p>
+            <div ng-if="current_order().length > 0">
+              <h4>ITEMS</h4>
+              <table class="table table-bordered table-hover">
                 <thead>
                   <tr>
                     <th></th>
                     <th>Description</th>
                     <th>Rate</th>
                     <th>Unit</th>
-                    <th ng-if="shop_open">Quantity</th>
-                    <th ng-if="shop_open" class="price">Price</th>
+                    <th>Quantity</th>
+                    <th class="price">Price</th>
                   </tr>
                 </thead> 
                 <tbody>
-                  <tr ng-repeat="row in skus" ng-if="c == row.category" ng-class="{success: (row.quantity > 0)}">
-                    <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
+                  <tr ng-repeat="row in current_order()">
+                    <td>{{$index+1}}</td>
                     <td>{{row.description}}</td>
                     <td>{{row.rate}}</td>
                     <td>{{row.unit}}</td>
-                    <td ng-if="shop_open"><input type="number" class="quantity" ng-model="row.quantity" ng-change="remove_float(row)"></td>
-                    <td ng-if="shop_open"><span class="cost" ng-show="row.quantity > 0">&#8377; {{price(row.rate, row.quantity)}}</span></td>
+                    <td><span class="quantity">{{row.quantity}}</span></td>
+                    <td><span class="cost">&#8377; {{price(row.rate, row.quantity)}}</span></td>
                   </tr>
                 </tbody>
-                <tfoot ng-if="shop_open">
+                <tfoot>
                   <tr>
                     <td colspan=5 style="text-align: right">Total</td>
                     <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
@@ -137,162 +184,115 @@
                 </tfoot>
               </table>
 
+              <h4>DELIVERY INSTRUCTIOS</h4>
+              <textarea ng-model="order.customer_instructions" class="form-control" rows="3"></textarea>
+
+              <a href="#" ng-if="(current_order().length > 0)" class="btn btn-success pull-right" ng-click="submitOrder()">
+                <span ng-show="!ajax_waiting">Submit Order</span>
+                <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
+              </a>
+              <a href="#" style="padding: 6px 20px" class="pull-right" ng-click="navigateTo('order-page')">Modify Order</a>
+              <div class="clearfix"></div>
+
             </div>
           </div>
-          <a ng-if="shop_open" href="#" class="btn btn-success pull-right" ng-click="navigateTo('shopping-cart')">Check Out</a>
-          <div class="clearfix"></div>
 
-          <h4>Please Note</h4>
-          <p>If you wish to order 100 grams, please enter <strong>0.1</strong> as quantity. If you wish to order 250 grams, please enter <strong>0.25</strong>. <strong>Pieces</strong> and <strong>Bunches</strong> cannot be entered in decimal. You must provide whole number such as <strong>1</strong> or <strong>2</strong>.</p>
-        </div>
-
-
-        <div ng-if="nav == 'shopping-cart'" id="shopping-cart">
-          <div class="page-header">
-            <h1>Shopping Cart</h1>
-          </div>
-          <p ng-if="!shop_open">Please wait for your shopping window to open to access shopping cart</p>
-          <p ng-if="shop_open && (current_order().length == 0)">You have not added any items to your shopping cart</p>
-          <div ng-if="current_order().length > 0">
-          <h4>ITEMS</h4>
-          <table class="table table-bordered table-hover">
-            <thead>
-              <tr>
-                <th></th>
-                <th>Description</th>
-                <th>Rate</th>
-                <th>Unit</th>
-                <th>Quantity</th>
-                <th class="price">Price</th>
-              </tr>
-            </thead> 
-            <tbody>
-              <tr ng-repeat="row in current_order()">
-                <td>{{$index+1}}</td>
-                <td>{{row.description}}</td>
-                <td>{{row.rate}}</td>
-                <td>{{row.unit}}</td>
-                <td><span class="quantity">{{row.quantity}}</span></td>
-                <td><span class="cost">&#8377; {{price(row.rate, row.quantity)}}</span></td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan=5 style="text-align: right">Total</td>
-                <td><span class="cost">&#8377;{{totalPrice()}}</span></td>
-              </tr>
-            </tfoot>
-          </table>
-
-          <h4>DELIVERY INSTRUCTIOS</h4>
-          <textarea ng-model="order.customer_instructions" class="form-control" rows="3"></textarea>
-
-          <a href="#" ng-if="(current_order().length > 0)" class="btn btn-success pull-right" ng-click="submitOrder()">
-            <span ng-show="!ajax_waiting">Submit Order</span>
-            <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
-          </a>
-          <a href="#" style="padding: 6px 20px" class="pull-right" ng-click="navigateTo('order-page')">Modify Order</a>
-          <div class="clearfix"></div>
-
-
-        </div>
-
-        <div ng-if="nav == 'orders'" id="orders">
-          <div class="page-header">
-            <h1>My Past Orders</h1>
-            <table ng-if="order_history" class="table table-bordered table-hover">
-              <thead>
-                <tr>
-                  <th>Order Date</th>
-                  <th>Invoice ID</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr ng-repeat="order in order_history">
-                  <th>{{order.order_id}}</th>
-                  <th>{{order.invoice_id}}</th>
-                  <th>{{order.discount_price}}</th>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div ng-if="nav == 'preferences'" id="preferences">
-          <div class="page-header">
-            <h1>Preferences</h1>
-            <div class="alert alert-success" role="alert" ng-if="new_user">
-            Welcome <strong>{{current_user.name}}</strong> to Mapletree Community. Please provide your mobile number and select your community to proceed.
+          <div ng-if="nav == 'orders'" id="orders">
+            <div class="page-header">
+              <h1>My Past Orders</h1>
+              <table ng-if="order_history" class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th>Order Date</th>
+                    <th>Invoice ID</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="order in order_history">
+                    <th>{{order.order_id}}</th>
+                    <th>{{order.invoice_id}}</th>
+                    <th>{{order.discount_price}}</th>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-
-            <table ng-if="new_user" class="table table-bordered table-hover">
-              <tbody>
-                <tr>
-                  <td>Phone Number</td>
-                  <td><input type="number" ng-model="current_user.mobile"></td>
-                </tr>
-                <tr>
-                  <td>Community</td>
-                  <td>
-                    <select ng-model="current_user.community" class="form-control">
-                      <option>--- Please Select ---</option>
-                      <option ng-repeat="c in communities">{{c.name}}</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Door Number</td>
-                  <td><input type="text" ng-model="current_user.door_number"></td>
-                </tr>
-                <tr>
-                  <td></td>
-                  <td><a class="btn btn-lg btn-success" href="#" ng-click="registerUser()">Proceed</a></td>
-                </tr>
-              </tbody>
-            </table>
-
-            <table ng-if="!new_user" class="table table-bordered table-hover">
-              <tbody>
-                <tr>
-                  <td>Name</td>
-                  <td><input type="text" ng-model="current_user.name"></td>
-                </tr>
-                <tr>
-                  <td>Email Address</td>
-                  <td>{{current_user.email}}</td>
-                </tr>
-                <tr>
-                  <td>Phone Number</td>
-                  <td>{{current_user.mobile}}</td>
-                </tr>
-                <tr>
-                  <td>Community</td>
-                  <td>{{current_user.community}}</td>
-                </tr>
-                <tr>
-                  <td>Door Number</td>
-                  <td><input type="text" ng-model="current_user.door_number"></td>
-                </tr>
-                <tr>
-                  <td>Address</td>
-                  <td>{{current_community.address}}</td>
-                </tr>
-                <tr>
-                  <td></td>
-                  <td><a class="btn btn-lg btn-success" href="#" ng-click="registerUser()">Save</a></td>
-                </tr>
-              </tbody>
-            </table>
           </div>
-        </div>
 
-      </div>
+          <div ng-if="nav == 'preferences'" id="preferences">
+            <div class="page-header">
+              <h1>Preferences</h1>
+              <div class="alert alert-success" role="alert" ng-if="new_user">
+                Welcome <strong>{{current_user.name}}</strong> to Mapletree Community. Please provide your mobile number and select your community to proceed.
+              </div>
+
+              <table ng-if="new_user" class="table table-bordered table-hover">
+                <tbody>
+                  <tr>
+                    <td>Phone Number</td>
+                    <td><input type="number" ng-model="current_user.mobile"></td>
+                  </tr>
+                  <tr>
+                    <td>Community</td>
+                    <td>
+                      <select ng-model="current_user.community" class="form-control">
+                        <option>--- Please Select ---</option>
+                        <option ng-repeat="c in communities">{{c.name}}</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Door Number</td>
+                    <td><input type="text" ng-model="current_user.door_number"></td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td><a class="btn btn-lg btn-success" href="#" ng-click="registerUser()">Proceed</a></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <table ng-if="!new_user" class="table table-bordered table-hover">
+                <tbody>
+                  <tr>
+                    <td>Name</td>
+                    <td><input type="text" ng-model="current_user.name"></td>
+                  </tr>
+                  <tr>
+                    <td>Email Address</td>
+                    <td>{{current_user.email}}</td>
+                  </tr>
+                  <tr>
+                    <td>Phone Number</td>
+                    <td>{{current_user.mobile}}</td>
+                  </tr>
+                  <tr>
+                    <td>Community</td>
+                    <td>{{current_user.community}}</td>
+                  </tr>
+                  <tr>
+                    <td>Door Number</td>
+                    <td><input type="text" ng-model="current_user.door_number"></td>
+                  </tr>
+                  <tr>
+                    <td>Address</td>
+                    <td>{{current_community.address}}</td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td><a class="btn btn-lg btn-success" href="#" ng-click="registerUser()">Save</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <footer class="footer">
-      <p class="pull-right">v1.1</p>
-      <p>© 2016 Mapletree Farms</p>
+        <p class="pull-right">v1.0</p>
+        <p>© 2016 Mapletree Farms</p>
       </footer>
 
       <div class="modal fade" tabindex="-1" id="signupModel" role="dialog">
