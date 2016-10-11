@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Mapletree Farms</title>
+
+    <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div >
+
+        <div id="shopping-cart">
+          <div class="page-header">
+            <h3> Mapletree Farms </h3>
+            <h4>Reset Password</h4>
+          </div>
+          
+          {{#if error_message}}
+          <div class="alert alert-danger">
+            <p>{{error_message}}</p>
+          </div>
+          {{/if}}
+
+          <form action="/users/reset/{{reset_token}}" method="POST" class="form-horizontal">
+            <div class="form-group" >
+              <label for="password" class="col-sm-4 control-label">New Password </label>
+              <div class="col-sm-4">
+                <input type="password" class="form-control" id="password" name="password" placeholder="password">
+              </div>
+            </div>
+            <div class="form-group" >
+              <label for="password_confirmation" class="col-sm-4 control-label">Password Confirmation</label>
+              <div class="col-sm-4">
+                <input type="password" class="form-control" ng-model="user.password" id="password_confirmation" name="password_confirmation" placeholder="password">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-offset-4 col-sm-4">
+                <input type="submit" value="Reset Password" class="btn-default btn-success"/>
+              </div>
+            </div>
+
+
+          </form>
+
+
+        </div>
+
+      </div>
+
+      <footer class="footer">
+        <p class="pull-right">v1.0</p>
+        <p>© 2016 Mapletree Farms</p>
+      </footer>
+
+    </div>
+
+  </body>
+
+</html>
