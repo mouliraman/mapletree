@@ -184,8 +184,8 @@ server.route({
   handler: (req, reply) => {
     var user = db.getUserById(req.query.uid);
     if (user) {
-      db.storeOrder(req.query.uid, req.params.order_id, req.payload);
-      var order = db.getOrdersForUser(req.query.uid, req.params.order_id);
+      db.storeOrder(user.id, req.params.order_id, req.payload);
+      var order = db.getOrdersForUser(user.id, req.params.order_id);
       if (!req.query.admin) {
         email.send_invoice(user, order, req.params.order_id);
       }
