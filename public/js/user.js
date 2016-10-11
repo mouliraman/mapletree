@@ -146,7 +146,12 @@ angular.module('mapletreeUser', ['ngSanitize'])
         $scope.error_message = null;
         $http.post('/' + $scope.user.action + '.json', $scope.user).success(function(response) {
           if (response.status == 'success') {
-            $scope.onLogin(response.profile);
+            if ($scope.user.action == 'forgot') {
+              $scope.error_message = null;
+              $scope.warning_message = response.message;
+            } else {
+              $scope.onLogin(response.profile);
+            }
           } else {
             $scope.error_message = response.reason;
             //TODO : Print an error

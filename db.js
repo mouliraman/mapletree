@@ -91,6 +91,7 @@ function Db(cloud_storage) {
   }
   this.getUserById = (id) => { return this.getUser('id', id);}
   this.getUserByEmail = (email) => { return this.getUser('email', email);}
+  this.getUserByToken = (token) => { return this.getUser('reset_token', token);}
 
   this.getInvoiceId = (order_id,uid) => {
     for(var i = 0; i<this.data.users.length; i++) {
@@ -101,6 +102,13 @@ function Db(cloud_storage) {
       }
     }
     return '000000';
+  }
+
+  this.changePassword = (user, new_password) => {
+    var hash = crypto.createHash('sha256');
+    hash.update(new_password);
+    user.password = hash.digest('hex');
+    return this.save();
   }
 
   this.loginUser = function(email, password) {
@@ -159,6 +167,13 @@ function Db(cloud_storage) {
       }
     }
     this.data.users.push(user);
+    return this.save();
+  }
+
+  this.resetUser = (user) => {
+    var token = Math.round(Math.random() * 9000000000000000);
+    token += parseInt(user.id);
+    user.reset_token = token.toString();
     return this.save();
   }
 

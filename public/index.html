@@ -311,11 +311,15 @@
                 <div class="panel-heading">
                   <h4 ng-show="user.action == 'register'">Sign Up</h4>
                   <h4 ng-show="user.action == 'login'">Login </h4>
+                  <h4 ng-show="user.action == 'forgot'">Reset Password</h4>
                 </div>
                 <div class="panel-body">
 
                   <div ng-if="error_message" class="alert alert-danger">
                     <p ng-bind-html="error_message"></p>
+                  </div>
+                  <div ng-if="warning_message" class="alert alert-warning">
+                    <p ng-bind-html="warning_message"></p>
                   </div>
 
                   <form class="form-horizontal">
@@ -331,7 +335,7 @@
                         <input type="email" class="form-control" ng-model="user.email" id="inputEmail3" placeholder="Email">
                       </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" ng-show="user.action != 'forgot'">
                       <label for="inputPassword3" class="col-sm-2 control-label">Password</label>
                       <div class="col-sm-10">
                         <input type="password" class="form-control" ng-model="user.password" id="inputPassword3" placeholder="Password">
@@ -345,10 +349,20 @@
                           <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
                           <span ng-if="!ajax_waiting && (user.action == 'register')">Sign Up</span>
                           <span ng-if="!ajax_waiting && (user.action == 'login')">Login</span>
+                          <span ng-if="!ajax_waiting && (user.action == 'forgot')">Reset Password</span>
                         </button>
                       </div>
                     </div>
+
+                    <div class="form-group">
+                      <div class="col-sm-offset-2 col-sm-10">
+                        <a href="#" ng-show="user.action != 'forgot'" ng-click="user.action = 'forgot'">Forgot Password?</a>
+                        <a href="#" ng-show="user.action == 'forgot'" ng-click="user.action = 'login'">Let me login</a>
+                      </div>
+                    </div>
+
                   </form>
+
                 </div>
               </div>
             </div>

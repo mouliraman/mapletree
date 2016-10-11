@@ -50,6 +50,65 @@ server.route({
   }
 });
 
+server.route({
+  method: 'POST',
+  path: '/forgot.json',
+  handler: (req, reply) => {
+    var user = db.getUserByEmail(req.payload.email);
+    if (user) {
+      // generate a reset token and store it in db
+      db.resetUser(user);
+      // send email to user with reset link
+      email.send_reset_email(user);
+      // send 200 OK response
+      reply({status: 'success', message: 'We have sent an email to you with instructions on how to reset your password. Please check your email.'});
+    } else {
+      // send error response
+      return reply({statusCode: 404, error: 'Not Found', message: 'user with email ' + req.payload.email + ' is not found'}).code(404);
+    }
+  },
+  config: {
+    validate: {
+      payload: Joi.object({
+        email: Joi.string().email().required()
+      }).unknown()
+    }
+  }
+
+});
+
+server.route({
+  method: 'POST',
+  path: '/users/reset/{token}',
+  handler: (req, reply) => {
+    var user = db.getUserByToken(req.params.token);
+    var error_message = null;
+
+    if (!user) {
+      error_message = 'user with token ' + req.params.token + ' is not found';
+    } else if (req.payload.password != req.payload.password_confirmation) {
+      error_message = 'password and password confirmation did not match';
+    }
+
+    if (error_message) {
+      user.error_message = error_message;
+      return reply.view('reset',user);
+    }
+
+    db.changePassword(user,req.payload.password);
+    return reply({status: 'success'}).redirect('/');
+  },
+  config: {
+    validate: {
+      payload: Joi.object({
+        password: Joi.string().required(),
+        password_confirmation: Joi.string().required()
+      }).unknown()
+    }
+  }
+});
+
+
 // register and set profile information about the user
 server.route({
   method: 'POST',
@@ -204,6 +263,18 @@ server.route({
     v.on('exit', function (code, signal) {
       return reply({status: 'success'});
     });
+  }
+});
+
+server.route({
+  method: 'GET',
+  path: '/users/forgot/{token}',
+  handler: (req,reply) => {
+    var user = db.getUserByToken(req.params.token);
+    if (!user) {
+      return reply({statusCode: 400, error: 'Bad Request', message: 'No user found with the given token'}).code(400);
+    }
+    reply.view('reset',user);
   }
 });
 

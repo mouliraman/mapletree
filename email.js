@@ -25,6 +25,28 @@ function Email(api_key) {
 
   }
 
+  this.send_reset_email = (user) => {
+    var message = {
+      from: 'Mapletree Farms <no-reply@revu.in>',
+      to: user.email,
+      subject: '[Mapletree Farms] Reset Password',
+    }
+
+    message.text = "Hi " + user.name + ",\n\n";
+    message.text += "Someone (hopefully you) has requested to reset password of your account. If that is you, please click on the following link and reset your password.\n\n";
+    message.text += 'http://mpt.revu.in/users/forgot/' + user.reset_token + '\n\n';
+    message.text += "If that person is not you, then ignore this email and all will be well.\n\n";
+ 
+    message.text += "Thanks\n";
+    message.text += "-Mapletree Farms\n";
+
+    mailgun.messages().send(message, function (error, body) {
+      if (error) {
+        console.log('email:error: failed to send email ' + error);
+      }
+    });
+  }
+
   this.welcome = (user) => {
 
     var message = {
