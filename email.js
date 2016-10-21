@@ -2,6 +2,54 @@ function Email(api_key) {
   var domain = 'revu.in';
   var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
 
+  this.daily_email = (db) => {
+
+    var today = new Date();
+    var today_weekday = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][today.getDay()];
+    console.log('searching for communities for ' + today_weekday);
+    for (var i=0;i<db.data.users.length;i++) {
+      var user = db.data.users[i];
+      community = db.communities[user.community];
+      if (community) {
+        var message = {
+          from: 'Mapletree Farms <no-reply@revu.in>',
+          to: user.email,
+        }
+
+        if (community.start_day == today_weekday) {
+          console.log('sending start window email to ' + user.name + ' for community ' + community.name);
+          message.subject = '[Mapletree Farms] Place your weekly order';
+          message.text = "Good Morning " + user.name + ",\n\n";
+          message.text += "Your fridge must have run out of veggies. Guess what, your ordering window from Mapletree starts today.\n";
+          message.text += "So what are you waiting for? Head over to http://mpt.revu.in and place your order in a jiffy\n\n";
+          message.text += "Cheers\n";
+          message.text += "-Shankar\n";
+        } else if (community.end_day == today_weekday) {
+          console.log('sending end window email to ' + user.name + ' for community ' + community.name);
+          message.subject = '[Mapletree Farms] Your order window closes today';
+          message.text = "Good Morning " + user.name + ",\n\n";
+          message.text += "I know you would have placed your order for the veggies this week, so go ahead and delete this email\n";
+          message.text += "In the remote possibility that you forgot, today is the last chance\n";
+          message.text += "Head over to http://mpt.revu.in and place your order before your window closes\n\n";
+          message.text += "Cheers\n";
+          message.text += "-Shankar\n";
+        }
+
+        if (message.text) {
+          console.log('sending email to ' + message.to + ' sub: ' + message.subject);
+          mailgun.messages().send(message, function (error, body) {
+            if (error) {
+              console.log('email:error: failed to send email ' + error);
+            }
+          });
+        }
+      } else {
+        console.log('no community for ' + user.name + ' community ' + user.community);
+      }
+    }
+
+  }
+
   this.door_number = (user) => {
     var message = {
       from: 'Mapletree Farms <no-reply@revu.in>',

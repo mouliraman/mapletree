@@ -289,6 +289,15 @@ server.route({
   }
 });
 
+server.route({
+  method: 'POST',
+  path: '/data/daily/email',
+  handler: (req, reply) => {
+    email.daily_email(db);
+    return reply({statusCode: 200, status:  'success'});
+  }
+});
+
 // Serve static files
 server.register(Inert, () => {});
 
