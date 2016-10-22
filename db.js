@@ -225,14 +225,10 @@ function Db(cloud_storage) {
   }
 
   this.clone_order = (order) => {
-    var new_order = {
-      description: order.description,
-      category: order.category,
-      unit: order.unit,
-      rate: order.rate,
-      quantity: order.quantity,
-      packed_quantity: order.packed_quantity
-    };
+    var new_order = {}
+    for (key in order) {
+      new_order[key] = order[key];
+    }
     return new_order;
  
   }

@@ -282,9 +282,23 @@ server.route({
   method: 'GET',
   path:'/data/invoice/{uid}/{order_id}',
   handler: (req, reply) => {
-    var order = db.getOrdersForUser(req.params.uid, req.params.order_id);
+    var order = db.clone_order(db.getOrdersForUser(req.params.uid, req.params.order_id));
     order.user = db.getUserById(req.params.uid);
     order.date = req.params.order_id;
+    if (req.query && req.query.admin) {
+      var total = 0;
+      var new_items = [];
+      for(var i=0;i<order.items.length;i++) {
+        var new_item = db.clone_order(order.items[i]);
+        new_item.quantity = new_item.packed_quantity || 0;
+        new_item.price = new_item.quantity * new_item.rate;
+        total += new_item.price;
+        new_items.push(new_item);
+      }
+      order.items = new_items;
+      order.total_price = total;
+      order.discount_price = total - order.discount;
+    }
     reply.view('invoice',order);
   }
 });

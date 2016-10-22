@@ -167,23 +167,37 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan=5 style="text-align: right">Total</td>
+                  <td colspan=5 style="text-align: right">Sub Total</td>
                   <td><span class="cost">&#8377;{{totalPrice(false)}}</span></td>
                   <td ng-show="order_select.editable"></td>
                   <td ng-show="order_select.editable">&#8377;{{totalPrice(true)}}</td>
+                </tr>
+                <tr ng-show="order_select.editable">
+                  <td colspan=5 style="text-align: right">Discount</td>
+                  <td><span class="cost"></span></td>
+                  <td></td>
+                  <td><input type=number class="quantity" ng-model="order.discount" /></td>
+                </tr>
+                <tr ng-show="order_select.editable">
+                  <td colspan=5 style="text-align: right">Grand Total</td>
+                  <td><span class="cost"></span></td>
+                  <td></td>
+                  <td>&#8377;{{totalPrice(true) - order.discount}}</td>
                 </tr>
               </tfoot>
             </table>
             <h4>Customer Instructions</h4>
             <p>{{order.customer_instructions}}</p>
-            <!--<a href="#" class="pull-right btn btn-success">Delivered</a>-->
-            <a ng-show="order_select.editable" ng-click="submitOrder()" class="pull-right btn btn-success">
-              <span ng-show="!ajax_waiting">Save</span>
-              <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
-            </a>
-            <a ng-show="order_select.editable" href="/data/invoice/{{order_select.uid}}/{{order_select.order_id}}">Invoice</a>
+            <div class="pull-right">
+              <!--<a href="#" class="pull-right btn btn-success">Delivered</a>-->
+              <a ng-show="order_select.editable" ng-click="submitOrder()" class="btn btn-success">
+                <span ng-show="!ajax_waiting">Save</span>
+                <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
+              </a>
+              <a class="btn btn-success" ng-show="order_select.editable" href="/data/invoice/{{order_select.uid}}/{{order_select.order_id}}?admin=1">Invoice</a>
  
-            <div class="clear"></div>
+            </div>
+            <div class="clearfix"></div>
           </div>
 
           <div role="tabpanel" class="tab-pane " id="users">
