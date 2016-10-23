@@ -15,24 +15,27 @@ function Email(api_key) {
           from: 'Mapletree Farms <no-reply@revu.in>',
           to: user.email,
         }
+        var today_order_id = [today.getFullYear(), today.getMonth()+1, today.getDate()].join('-');
 
         if (community.start_day == today_weekday) {
           console.log('sending start window email to ' + user.name + ' for community ' + community.name);
           message.subject = '[Mapletree Farms] Place your weekly order';
           message.text = "Good Morning " + user.name + ",\n\n";
-          message.text += "Your fridge must have run out of veggies. Guess what, your ordering window from Mapletree starts today.\n";
-          message.text += "So what are you waiting for? Head over to http://mpt.revu.in and place your order in a jiffy\n\n";
+          message.text += "This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.\n";
+          message.text += "Head over to http://mpt.revu.in and place your order in a jiffy\n";
+          message.text += "Your ordering window will close tomorrow.\n\n";
           message.text += "Cheers\n";
-          message.text += "-Shankar\n";
-        } else if (community.end_day == today_weekday) {
+          message.text += "-Shankar, your farmer @Mapletree\n";
+        } else if ((community.end_day == today_weekday) &&             // today is end day of the community
+                   (!db.data.orders[user.id][today_order_id])) {       // user does not have order id for today
           console.log('sending end window email to ' + user.name + ' for community ' + community.name);
           message.subject = '[Mapletree Farms] Your order window closes today';
           message.text = "Good Morning " + user.name + ",\n\n";
-          message.text += "I know you would have placed your order for the veggies this week, so go ahead and delete this email\n";
-          message.text += "In the remote possibility that you forgot, today is the last chance\n";
+          message.text += "This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.\n";
+          message.text += "Your ordering window closes today at 12PM.\n";
           message.text += "Head over to http://mpt.revu.in and place your order before your window closes\n\n";
           message.text += "Cheers\n";
-          message.text += "-Shankar\n";
+          message.text += "-Shankar, your farmer @Mapletree\n";
         }
 
         if (message.text) {
@@ -62,7 +65,7 @@ function Email(api_key) {
     message.text += "Then you can enter your Door number and then click on Save.\n\n";
     message.text += "This will record your door number and will help us deliver to the right address. Please ignore if Door number is not applicable to your community.\n\n";
     message.text += "Thanks\n";
-    message.text += "-Shankar\n";
+    message.text += "-Shankar, your farmer @Mapletree\n";
     message.text += "http://mpt.revu.in\n";
 
     mailgun.messages().send(message, function (error, body) {
@@ -109,7 +112,7 @@ function Email(api_key) {
     message.text += "Your shopping order window will open on " + user.community.start_day + " at " + user.community.start_time + " hours. You can place your order for the week til " + user.community.end_day + " " + user.community.end_time + " hours.\n\n";
     message.text += "If you have any questions or feedback on our service, do get in touch with us.\n\n";
     message.text += "Thanks\n";
-    message.text += "-Shankar\n";
+    message.text += "-Shankar, your farmer @Mapletree\n";
 
     mailgun.messages().send(message, function (error, body) {
       if (error) {
