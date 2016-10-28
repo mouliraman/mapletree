@@ -129,6 +129,7 @@
                   <th>Name</th>
                   <th>Mobile</th>
                   <th>Bill Value</th>
+                  <th>Order State</th>
                 </tr>
               </thead>
               <tbody>
@@ -136,6 +137,7 @@
                   <td><a href="#" ng-click="order_select.uid=user.uid;fetchOrder()">{{user.name}}</a></td>
                   <td>{{user.mobile}}</td>
                   <td>&#8377; {{user.total_price}}</td>
+                  <td><span class="label" ng-class="(user.state == 'delivered') ? 'label-success': 'label-info'">{{user.state}}</span></td>
                 </tr>
               </tbody>
             </table>
@@ -186,18 +188,30 @@
                 </tr>
               </tfoot>
             </table>
-            <h4>Customer Instructions</h4>
-            <p>{{order.customer_instructions}}</p>
-            <div class="pull-right">
-              <!--<a href="#" class="pull-right btn btn-success">Delivered</a>-->
-              <a ng-show="order_select.editable" ng-click="submitOrder()" class="btn btn-success">
-                <span ng-show="!ajax_waiting">Save</span>
-                <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
-              </a>
-              <a class="btn btn-success" ng-show="order_select.editable" href="/data/invoice/{{order_select.uid}}/{{order_select.order_id}}?admin=1">Invoice</a>
- 
+            <div ng-show="order_select.editable">
+              <h4>Customer Instructions</h4>
+              <p>{{order.customer_instructions}}</p>
+
+              <div ng-if="order.state == 'delivered'" class="alert alert-warning">
+                <p>This order has already been delivered.</p>
+              </div>
+
+              <div class="pull-right">
+                <a ng-click="submitOrder('packing')" class="btn btn-success">
+                  <span ng-show="!ajax_waiting">Save</span>
+                  <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
+                </a>
+                <a ng-click="submitOrder('delivered')" class="btn btn-success">
+                  <span ng-show="!ajax_waiting">Deliver</span>
+                  <span ng-show="ajax_waiting" class="glyphicon glyphicon-refresh spinning"></span>
+                </a>
+                <a target="popup" href="/data/invoice/{{order_select.uid}}/{{order_select.order_id}}">Invoice</a>
+
+              </div>
+              <div class="clearfix"></div>
+              <h4>Note</h4>
+              <p>You can click on save button to save the order any number of time. Once the order is completely packed and is final you should press the "Deliver" button. Please note that "Deliver" button will trigger an email to the customer. So preferably press the Deliver button only when delivery truck has left.</p>
             </div>
-            <div class="clearfix"></div>
           </div>
 
           <div role="tabpanel" class="tab-pane " id="users">

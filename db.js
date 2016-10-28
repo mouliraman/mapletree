@@ -177,20 +177,34 @@ function Db(cloud_storage) {
     return this.save();
   }
 
-  this.getOrderListForUser = (user) => {
+  this.getOrderHistory = () => {
+    var num_orders = {};
+    for(var uid in db.data.orders) {
+      for(var order_id in db.data.orders[uid]) {
+        if (!num_orders[order_id]) {
+          num_orders[order_id] = {count: 0, total: 0};
+        }
+        num_orders[order_id].count += 1;
+        num_orders[order_id].total += db.data.orders[uid][order_id].total_price;
+      }
+    }
+    return num_orders;
+  }
+
+  this.getAllOrdersForUser = (user) => {
     var ret = [];
     if ((this.data.orders) && (this.data.orders[user.id])) {
-      order_ids = Object.keys(this.data.orders[user.id]);
-      for (var i=0;i<order_ids.length;i++) {
-        var order = this.data.orders[user.id][order_ids[i]];
-        ret.push({
-          state: order.state,
-          order_id: order.order_id,
+      for (var key in this.data.orders[user.id]) {
+        var order = this.data.orders[user.id][key];
+        var item = {
+          date: key,
           invoice_id: order.invoice_id,
+          state: order.state,
           discount: order.discount,
           total_price: order.total_price,
-          discount_price: order.discount_price
-        });
+          discount_price: order.total_price - order.discount
+        }
+        ret.push(item);
       }
     }
     return ret;
@@ -204,22 +218,7 @@ function Db(cloud_storage) {
         (this.data.orders[uid][order_id])
         ) {
 
-      var order = this.data.orders[uid][order_id];
-      if (!order.invoice_id) {
-        order.invoice_id = this.getInvoiceId(order_id,uid);
-        this.save();
-      }
-      var total_price = 0;
-      for (var i = 0 ; i < order.items.length ; i++ ) {
-        var item = order.items[i];
-        item.price = Math.round(item.quantity * item.rate * 100)/100;
-        total_price += item.price;
-      }
-      order.total_price = Math.round(total_price * 100)/100;
-      if (!order.discount) {
-        order.discount = 0;
-      }
-      order.discount_price = order.total_price - order.discount;
+      order = this.data.orders[uid][order_id];
     }
     return order;
   }
@@ -280,7 +279,8 @@ function Db(cloud_storage) {
 
       var u = this.getUserById(uid);
       var uu = {name: u.name, email: u.email, mobile: u.mobile, uid: u.id};
-      uu.total_price = user_orders.total_price;
+      uu.total_price = user_orders.total_price - user_orders.discount;
+      uu.state = user_orders.state;
       users.push(uu);
 
       for(var i =0;i<user_orders.items.length;i++) {
@@ -349,6 +349,8 @@ function Db(cloud_storage) {
         this.data.orders[uid][order_id][keys[i]] = order[keys[i]];
       }
     } else {
+      /* this is the first order. find the invoice id and save */
+      order.invoice_id = this.getInvoiceId(order_id, uid);
       this.data.orders[uid][order_id] = order;
     }
     return this.save();

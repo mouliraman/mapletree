@@ -17,7 +17,6 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
       $scope.select_community = function (c) {
         $scope.selected_community_index = c;
       }
-
       $scope.fetch_sync_date = function () {
         $http.get('/export.date').success(function (res) {
           $scope.last_sync_time = res;
@@ -144,9 +143,10 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
         });
         console.log('saving user ' + user.email + ' door number ' + user.door_number);
       }
-      $scope.submitOrder = function() {
+      $scope.submitOrder = function(state) {
         $scope.ajax_waiting = true;
-        $scope.order.state = 'packing';
+        $scope.order.state = state;
+        $scope.order.total_price = $scope.totalPrice(true);
 
         if ($scope.order_select.order_id && $scope.order_select.uid) {
           $http.post('/data/orders/' + $scope.order_select.order_id + '.json?admin=1&uid=' + $scope.order_select.uid, 

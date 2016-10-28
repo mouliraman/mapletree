@@ -121,6 +121,42 @@ function Email(api_key) {
     });
   }
 
+  this.send_final_invoice = (user, order, order_id) => {
+   var message = {
+      from: 'Mapletree Farms <no-reply@revu.in>',
+      to: user.email,
+      cc: "mapletreefarm16@gmail.com",
+      subject: '[Mapletree Farms] Invoice - ' + user.name,
+    }
+
+    var url;
+    if (process.env.PORT == 3000) {
+      url = "http://localhost:3000/data/invoice/" + user.id + "/" + order_id;
+    } else {
+      url = "http://mpt.revu.in/data/invoice/" + user.id + "/" + order_id;
+    }
+    message.html = "<p>Dear " + user.name + ",</p>";
+    message.html += "<p>Your order has been delivered and the final invoice is generated. The total bill for this invoice is Rs. " + order.discount_price + "/-.</p>\n";
+    message.html += "<p>You can view your invoice <a href=\"" + url + "\">here</a>.</p>\n";
+    message.html += "<p>Please make the payment to the below mentioned account and send us an email confirmation with the transaction id.</p>\n";
+
+    message.html += "<p>Account Details :<br/>\n";
+    message.html += "Mapletree Farms Pvt. Ltd.<br/>\n";
+    message.html += "A/C No: 914020043283947<br/>\n";
+    message.html += "Axis Bank, Jayanagar Branch, Bangalore<br/>\n";
+    message.html += "IFSC Code: UTIB0000052<br/>\n";
+
+    message.html += "<p>Thanks</p>";
+    message.html += "<p>-Mapletree Farms</p>";
+
+    mailgun.messages().send(message, function (error, body) {
+      if (error) {
+        console.log('email:error: failed to send email ' + error);
+      }
+    });
+
+  }
+
   this.send_invoice = (user, order, order_id) => {
 
     var message = {

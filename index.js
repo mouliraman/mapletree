@@ -186,8 +186,12 @@ server.route({
     if (user) {
       db.storeOrder(user.id, req.params.order_id, req.payload);
       var order = db.getOrdersForUser(user.id, req.params.order_id);
+      order.discount_price = order.total_price - order.discount;
       if (!req.query.admin) {
         email.send_invoice(user, order, req.params.order_id);
+      }
+      if (order.state == 'delivered') {
+        email.send_final_invoice(user, order, req.params.order_id)
       }
       reply({status: 'success'});
     } else {
@@ -216,7 +220,7 @@ server.route({
     var ret;
     var user = db.getUserById(req.params.uid);
     if (user) {
-      return reply({'order_history' : db.getOrdersForUser(user)});
+      return reply({'order_history' : db.getAllOrdersForUser(user)});
     } else {
       return reply({statusCode: 400, error: 'User Not Found', message: 'user id does not exist'}).code(400);
     }
@@ -240,18 +244,6 @@ server.route({
     }
     ret.order_id = req.params.order_id;
     return reply(ret);
-  }
-});
-
-server.route({
-  method: 'GET', 
-  path:'/data/orders/{order_id}/user.json', 
-  handler: (req, reply) => {
-    if (req.query.uid) {
-      reply(db.getOrdersForUser(req.query.uid, req.params.order_id));
-    } else {
-      reply({status: 'failed', reason: 'mandatory param uid not provided'});
-    }
   }
 });
 
@@ -285,20 +277,20 @@ server.route({
     var order = db.clone_order(db.getOrdersForUser(req.params.uid, req.params.order_id));
     order.user = db.getUserById(req.params.uid);
     order.date = req.params.order_id;
-    if (req.query && req.query.admin) {
-      var total = 0;
+    if (order.state != 'ordered') {
       var new_items = [];
       for(var i=0;i<order.items.length;i++) {
         var new_item = db.clone_order(order.items[i]);
-        new_item.quantity = new_item.packed_quantity || 0;
-        new_item.price = new_item.quantity * new_item.rate;
-        total += new_item.price;
+        new_item.quantity = new_item.packed_quantity;
         new_items.push(new_item);
       }
       order.items = new_items;
-      order.total_price = total;
-      order.discount_price = total - order.discount;
     }
+    for(var i=0;i<order.items.length;i++) {
+      order.items[i].price = order.items[i].quantity * order.items[i].rate;
+      order.items[i].price = Math.round(order.items[i].price * 100)/100;
+    }
+    order.discount_price = order.total_price - order.discount;
     reply.view('invoice',order);
   }
 });

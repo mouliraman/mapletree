@@ -100,7 +100,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
         }
 
         // Get user order
-        $http.get('/data/orders/' + $scope.order_id + '/user.json?uid=' + $scope.current_user.id).success($scope.onUserOrders);
+        $http.get('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id).success($scope.onUserOrders);
 
       }
 
@@ -185,8 +185,14 @@ angular.module('mapletreeUser', ['ngSanitize'])
         }
 
         if ($scope.nav == 'orders') {
-          $http.get('/data/orders/'+current_user.id+'/index.json').success( function (res) {
+          $http.get('/data/orders/'+$scope.current_user.id+'/index.json').success( function (res) {
             $scope.order_history = res.order_history;
+            $scope.outstanding_balance = 0;
+            for(var i=0;i<res.order_history.length;i++) {
+              if (res.order_history[i].state == 'delivered') {
+                $scope.outstanding_balance += res.order_history[i].discount_price;
+              }
+            }
           });
         }
       }
@@ -207,7 +213,9 @@ angular.module('mapletreeUser', ['ngSanitize'])
           var order = {
             state: 'ordered',
             customer_instructions : $scope.order.customer_instructions,
-            items: $scope.current_order()
+            items: $scope.current_order(),
+            total_price: $scope.totalPrice(),
+            discount: 0
           };
 
           $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id, order).success(function () {
@@ -290,7 +298,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
           // The shop is open today. But are you early?
           var start_time = $scope.get_time($scope.current_community.start_time);
           if (start_time > new Date()) {
-            $scope.warning_message = "The shopping window will open today at <b></b>. Please come back to place order.";
+            $scope.warning_message = "The shopping window will open today at <b>" + $scope.current_community.start_time + "</b>. Please come back to place the order.";
           } else {
             $scope.success_message = "Shopping window has opened. Please place your order";
             $scope.shop_open = true;
