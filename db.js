@@ -177,20 +177,6 @@ function Db(cloud_storage) {
     return this.save();
   }
 
-  this.getOrderHistory = () => {
-    var num_orders = {};
-    for(var uid in db.data.orders) {
-      for(var order_id in db.data.orders[uid]) {
-        if (!num_orders[order_id]) {
-          num_orders[order_id] = {count: 0, total: 0};
-        }
-        num_orders[order_id].count += 1;
-        num_orders[order_id].total += db.data.orders[uid][order_id].total_price;
-      }
-    }
-    return num_orders;
-  }
-
   this.getAllOrdersForUser = (user) => {
     var ret = [];
     if ((this.data.orders) && (this.data.orders[user.id])) {
@@ -256,6 +242,64 @@ function Db(cloud_storage) {
     return new_items;
   }
 
+  this.getOrderHistory = () => {
+    var num_orders = {};
+    for(var uid in this.data.orders) {
+      for(var order_id in this.data.orders[uid]) {
+        if (!num_orders[order_id]) {
+          num_orders[order_id] = {count: 0, total: 0};
+        }
+        num_orders[order_id].count += 1;
+        num_orders[order_id].total += this.data.orders[uid][order_id].total_price;
+      }
+    }
+    return num_orders;
+  }
+
+  this.getInventoryUsage = () => {
+    var items = this.getOrderList();
+    var now = new Date();
+
+    for (var i=0;i<items.length;i++) {
+      items[i].quantity_7 = 0;
+      items[i].quantity_30 = 0;
+    }
+    for(var uid in this.data.orders) {
+      for(var order_id in this.data.orders[uid]) {
+
+        var order_date = new Date(order_id);
+        var diff = (now - order_date)/(24*60*60*1000);
+
+        if (diff > 30) {
+          continue;
+        }
+
+        var order = this.data.orders[uid][order_id];
+
+        for(var i = 0;i<items.length;i++) {
+          for(var j = 0;j<order.items.length;j++) {
+            if (items[i].description == order.items[j].description) {
+              if (diff < 7) {
+                items[i].quantity_7 += order.items[j].quantity;
+              }
+              items[i].quantity_30 += order.items[j].quantity;
+
+              break;
+            }
+          }
+        }
+ 
+      }
+    }
+    // Round of all quantities
+    for (var i=0;i<items.length;i++) {
+      items[i].quantity_7  = Math.round(items[i].quantity_7 /100)*100;
+      items[i].quantity_30 = Math.round(items[i].quantity_30/100)*100;
+    }
+    
+    return items;
+  }
+ 
   this.getOrdersForCommunity = function(community, order_id) {
     if (this.data.orders == null) {
       return [];
