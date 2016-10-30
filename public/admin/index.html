@@ -81,6 +81,28 @@
               <span ng-show="!ajax_waiting">Sync Again</span>
               <span ng-show="ajax_waiting">fetching....</span>
             </a></p>
+
+            <h4>Inventory Used</h4>
+            <a href="/data/orders/used_inventory.csv">Click here to download CSV Report</a>
+            <table ng-if="inventory_usage" class="table table-bordered table-hover">
+              <thead>
+                <th>S.No</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Last 7 Days</th>
+                <th>Last 30 Days</th>
+              </thead>
+              <tbody>
+                <tr ng-repeat="item in inventory_usage.items">
+                  <td>{{item['s.no']}}</td>
+                  <td>{{item.description}}</td>
+                  <td>{{item.category}}</td>
+                  <td>{{item.quantity_7}}</td>
+                  <td>{{item.quantity_30}}</td>
+                </tr>
+              </tbody>
+            </table>
+ 
           </div>
 
           <div role="tabpanel" class="tab-pane " id="orders">
