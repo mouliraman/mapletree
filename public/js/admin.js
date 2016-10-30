@@ -171,6 +171,10 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
           $http.get('/users/all.json').success($scope.onGetAllUsers);
           $http.get('/data/communities.json').success($scope.onCommunityInformation);
           $scope.fetch_sync_date();
+
+          $http.get('/data/orders/used_inventory.json').success(function (res) {
+            $scope.inventory_usage = res;
+          });
         } else {
           $scope.error_message = "Only admin users have access to this page";
           $scope.signOut();
