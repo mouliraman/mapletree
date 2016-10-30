@@ -1,0 +1,4 @@
+S.No,Description,Category,Rate,Unit,Last 7 Day,Last 30 days
+{{#each items}}
+{{inc @index}},"{{description}}",{{category}},{{rate}},{{unit}},{{quantity_7}},{{quantity_30}}
+{{/each}}

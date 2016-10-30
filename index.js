@@ -214,6 +214,18 @@ server.route({
 });
 
 server.route({
+  method: 'GET',
+  path: '/data/orders/used_inventory.{format}',
+  handler: (req, reply) => {
+    if (req.params.format == 'json') {
+      return reply({'items' : db.getInventoryUsage()});
+    } else {
+      reply.view('inventory.csv',{'items' : db.getInventoryUsage()});
+    }
+  }
+});
+
+server.route({
   method: 'GET', 
   path:'/data/orders/{uid}/index.json', 
   handler: (req, reply) => {
@@ -330,6 +342,11 @@ server.register(require('vision'), (err) => {
       html: {
         module: Handlebars,
         compileMode: 'sync'
+      },
+      csv: {
+        module: Handlebars,
+        compileMode: 'sync',
+        contentType: 'application/vnd.ms-excel'
       }
     },
     relativeTo: __dirname,
