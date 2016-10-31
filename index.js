@@ -215,12 +215,18 @@ server.route({
 
 server.route({
   method: 'GET',
-  path: '/data/orders/used_inventory.{format}',
+  path: '/data/orders/used_inventory/{start_date}/{end_date}.{format}',
   handler: (req, reply) => {
+      var inv = db.getInventoryUsage(req.params.start_date, req.params.end_date);
+      var resp = {
+        items: inv,
+        start_date: req.params.start_date,
+        end_date: req.params.end_date
+      };
     if (req.params.format == 'json') {
-      return reply({'items' : db.getInventoryUsage()});
+      return reply(resp);
     } else {
-      reply.view('inventory.csv',{'items' : db.getInventoryUsage()});
+      reply.view('inventory.csv',resp);
     }
   }
 });
@@ -278,7 +284,7 @@ server.route({
     if (!user) {
       return reply({statusCode: 400, error: 'Bad Request', message: 'No user found with the given token'}).code(400);
     }
-    reply.view('reset',user);
+    reply.view('reset.html',user);
   }
 });
 

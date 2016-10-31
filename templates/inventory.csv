@@ -1,4 +1,4 @@
-S.No,Description,Category,Rate,Unit,Last 7 Day,Last 30 days
+S.No,Description,Category,Rate,Unit,Duration,Cumulative Quantity
 {{#each items}}
-{{inc @index}},"{{description}}",{{category}},{{rate}},{{unit}},{{quantity_7}},{{quantity_30}}
+{{inc @index}},"{{description}}",{{category}},{{rate}},{{unit}},{{../start_date}} - {{../end_date}},{{quantity}}
 {{/each}}

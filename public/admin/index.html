@@ -83,22 +83,47 @@
             </a></p>
 
             <h4>Inventory Used</h4>
-            <a href="/data/orders/used_inventory.csv">Click here to download CSV Report</a>
-            <table ng-if="inventory_usage" class="table table-bordered table-hover">
+
+            <div class="row">
+              <div class="col-lg-4">
+                <div class="input-group date">
+                  <input type="text" ng-change="fetchInventory()" ng-model="inventory_usage.start_date" class="form-control" value="{{inventory_usage.start_date}}">
+                  <div class="input-group-addon">
+                    <span class="glyphicon glyphicon-th"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-4">
+                <div class="input-group date">
+                  <input type="text" ng-change="fetchInventory()" ng-model="inventory_usage.end_date" class="form-control" value="{{inventory_usage.end_date}}">
+                  <div class="input-group-addon">
+                    <span class="glyphicon glyphicon-th"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-4">
+                <a class="btn btn-success" href="/data/orders/used_inventory/{{inventory_usage.start_date}}/{{inventory_usage.end_date}}.csv">download CSV Report</a>
+              </div>
+            </div>
+
+            <div class="clearfix">
+            </div>
+
+            <table ng-if="inventory_usage.items" class="table table-bordered table-hover">
               <thead>
                 <th>S.No</th>
                 <th>Description</th>
                 <th>Category</th>
-                <th>Last 7 Days</th>
-                <th>Last 30 Days</th>
+                <th>Quantity</th>
               </thead>
               <tbody>
                 <tr ng-repeat="item in inventory_usage.items">
                   <td>{{item['s.no']}}</td>
                   <td>{{item.description}}</td>
                   <td>{{item.category}}</td>
-                  <td>{{item.quantity_7}}</td>
-                  <td>{{item.quantity_30}}</td>
+                  <td>{{item.quantity}}</td>
                 </tr>
               </tbody>
             </table>

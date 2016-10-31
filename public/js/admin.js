@@ -8,6 +8,11 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
       $scope.last_sync_time = "fetching....";
       $scope.spin = {};
       $scope.selected_community_index = -1;
+      $scope.inventory_usage = {
+        start_date: '2016-10-01',
+        end_date: '2016-10-31',
+        items: []
+      }
 
       $scope.format_date = function (d) {
         return [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
@@ -75,6 +80,15 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
           todayHighlight: true
         });
         $scope.getUsersPerCommunity();
+      }
+
+      $scope.fetchInventory = function () {
+        $http({
+          url: '/data/orders/used_inventory/' + $scope.inventory_usage.start_date + '/' + $scope.inventory_usage.end_date + '.json',
+          method: 'GET'
+        }).success(function (res) {
+          $scope.inventory_usage = res;
+        });
       }
 
       $scope.fetchOrder = function () {
@@ -171,10 +185,6 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
           $http.get('/users/all.json').success($scope.onGetAllUsers);
           $http.get('/data/communities.json').success($scope.onCommunityInformation);
           $scope.fetch_sync_date();
-
-          $http.get('/data/orders/used_inventory.json').success(function (res) {
-            $scope.inventory_usage = res;
-          });
         } else {
           $scope.error_message = "Only admin users have access to this page";
           $scope.signOut();

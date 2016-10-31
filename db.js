@@ -256,9 +256,12 @@ function Db(cloud_storage) {
     return num_orders;
   }
 
-  this.getInventoryUsage = () => {
-    var items = this.getOrderList();
+  this.getInventoryUsage = (start_date, end_date) => {
+    var items = {};
     var now = new Date();
+
+    var start_date_t = new Date(start_date);
+    var end_date_t = new Date(end_date);
 
     for (var i=0;i<items.length;i++) {
       items[i].quantity_7 = 0;
@@ -268,36 +271,40 @@ function Db(cloud_storage) {
       for(var order_id in this.data.orders[uid]) {
 
         var order_date = new Date(order_id);
-        var diff = (now - order_date)/(24*60*60*1000);
-
-        if (diff > 30) {
+        if ((start_date_t > order_date) || (end_date_t < order_date)) {
           continue;
         }
 
         var order = this.data.orders[uid][order_id];
+        var found = false;
 
-        for(var i = 0;i<items.length;i++) {
-          for(var j = 0;j<order.items.length;j++) {
-            if (items[i].description == order.items[j].description) {
-              if (diff < 7) {
-                items[i].quantity_7 += order.items[j].quantity;
-              }
-              items[i].quantity_30 += order.items[j].quantity;
+        for(var i = 0;i<order.items.length;i++) {
 
-              break;
-            }
+          var item = order.items[i];
+          if (items[item.description]) {
+            items[item.description].quantity += item.quantity;
+          } else {
+            items[item.description] = {
+              description: item.description,
+              quantity: item.quantity,
+              rate: item.rate,
+              category: item.category,
+              unit: item.unit
+            };
+
           }
         }
  
       }
     }
     // Round of all quantities
-    for (var i=0;i<items.length;i++) {
-      items[i].quantity_7  = Math.round(items[i].quantity_7 /100)*100;
-      items[i].quantity_30 = Math.round(items[i].quantity_30/100)*100;
+    var new_items = [];
+    for (key in items) {
+      items[key].quantity = Math.round(items[key].quantity * 100)/100;
+      new_items.push(items[key]);
     }
     
-    return items;
+    return new_items;
   }
  
   this.getOrdersForCommunity = function(community, order_id) {
