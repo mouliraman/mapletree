@@ -20,22 +20,30 @@ function Email(api_key) {
         if (community.start_day == today_weekday) {
           console.log('sending start window email to ' + user.name + ' for community ' + community.name);
           message.subject = '[Mapletree Farms] Place your weekly order';
-          message.text = "Good Morning " + user.name + ",\n\n";
-          message.text += "This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.\n";
-          message.text += "Head over to http://mpt.revu.in and place your order in a jiffy\n";
-          message.text += "Your ordering window will close tomorrow.\n\n";
-          message.text += "Cheers\n";
-          message.text += "-Shankar, your farmer @Mapletree\n";
+
+          message.text = `Good Morning ${user.name},
+
+This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.
+Head over to http://mpt.revu.in and place your order in a jiffy
+Your ordering window will close tomorrow.
+
+Cheers\n";
+-Shankar, your farmer @Mapletree
+`;
         } else if ((community.end_day == today_weekday) &&             // today is end day of the community
                    (!db.data.orders[user.id][today_order_id])) {       // user does not have order id for today
           console.log('sending end window email to ' + user.name + ' for community ' + community.name);
           message.subject = '[Mapletree Farms] Your order window closes today';
-          message.text = "Good Morning " + user.name + ",\n\n";
-          message.text += "This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.\n";
-          message.text += "Your ordering window closes today at 12PM.\n";
-          message.text += "Head over to http://mpt.revu.in and place your order before your window closes\n\n";
-          message.text += "Cheers\n";
-          message.text += "-Shankar, your farmer @Mapletree\n";
+
+          message.text = `Good Morning ${user.name},
+
+This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.
+Your ordering window closes today at 12PM.
+Head over to http://mpt.revu.in and place your order before your window closes
+
+Cheers
+-Shankar, your farmer @Mapletree
+`
         }
 
         if (message.text) {
@@ -135,19 +143,32 @@ function Email(api_key) {
     } else {
       url = "http://mpt.revu.in/data/invoice/" + user.id + "/" + order_id;
     }
-    message.html = "<p>Dear " + user.name + ",</p>";
-    message.html += "<p>Your order has been delivered and the final invoice is generated. The total bill for this invoice is Rs. " + order.discount_price + "/-.</p>\n";
-    message.html += "<p>You can view your invoice <a href=\"" + url + "\">here</a>.</p>\n";
-    message.html += "<p>Please make the payment to the below mentioned account and send us an email confirmation with the transaction id.</p>\n";
+    message.html = `<p>Dear ${user.name},</p>
+<p>Your order has been delivered and the final invoice is generated. The total bill for this invoice is Rs. ${order.discount_price}/-.</p>
+<p>You can view your invoice <a href=\"${url}\">here</a>.</p>
+<p>Please make the payment to the below mentioned account and send us an email confirmation with the transaction id.</p>
 
-    message.html += "<p>Account Details :<br/>\n";
-    message.html += "Mapletree Farms Pvt. Ltd.<br/>\n";
-    message.html += "A/C No: 914020043283947<br/>\n";
-    message.html += "Axis Bank, Jayanagar Branch, Bangalore<br/>\n";
-    message.html += "IFSC Code: UTIB0000052<br/>\n";
+<p>Account Details :<br/>
+Mapletree Farms Pvt. Ltd.<br/>
+A/C No: 914020043283947<br/>
+Axis Bank, Jayanagar Branch, Bangalore<br/>
+IFSC Code: UTIB0000052<br/>
+</p>
 
-    message.html += "<p>Thanks</p>";
-    message.html += "<p>-Mapletree Farms</p>";
+<p>Or, Please indicate invoice number and mail checks to<br/>
+Gayathri Bisale,<br/>
+Senior Accountant<br/>
+Mapletree farm, <br/>
+Outer Ring Road, <br/>
+No: 58, 15th cross road, <br/>
+J P Nagar, 2nd Phase<br/>
+Bangalore, 560078<br/>
+KA<br/>
+India<br/>
+</p>
+
+<p>Thanks</p>
+<p>-Mapletree Farms</p>`;
 
     mailgun.messages().send(message, function (error, body) {
       if (error) {
