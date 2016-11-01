@@ -92,7 +92,7 @@ server.route({
 
     if (error_message) {
       user.error_message = error_message;
-      return reply.view('reset',user);
+      return reply.view('reset.html',user);
     }
 
     db.changePassword(user,req.payload.password);
@@ -309,7 +309,7 @@ server.route({
       order.items[i].price = Math.round(order.items[i].price * 100)/100;
     }
     order.discount_price = order.total_price - order.discount;
-    reply.view('invoice',order);
+    reply.view('invoice.html',order);
   }
 });
 
@@ -359,6 +359,17 @@ server.register(require('vision'), (err) => {
     path: 'templates'
   });
 });
+
+if (process.env.SENTRY_DSN) {
+  server.register({
+    register: require('hapi-raven'),
+    options: {
+      dsn: process.env.SENTRY_DSN
+    }
+  });
+} else {
+  console.log('SENTRY_DSN not specified so not installing the sentry client');
+}
 
 server.register({
   register: Good,
