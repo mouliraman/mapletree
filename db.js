@@ -273,6 +273,7 @@ function Db(cloud_storage) {
         }
 
         var order = this.data.orders[uid][order_id];
+        num_orders += 1;
 
         for(var i = 0;i<order.items.length;i++) {
 
@@ -289,7 +290,6 @@ function Db(cloud_storage) {
             };
 
           }
-          num_orders += 1;
         }
  
       }
