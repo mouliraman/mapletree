@@ -259,14 +259,11 @@ function Db(cloud_storage) {
   this.getInventoryUsage = (start_date, end_date) => {
     var items = {};
     var now = new Date();
+    var num_orders = 0;
 
     var start_date_t = new Date(start_date);
     var end_date_t = new Date(end_date);
 
-    for (var i=0;i<items.length;i++) {
-      items[i].quantity_7 = 0;
-      items[i].quantity_30 = 0;
-    }
     for(var uid in this.data.orders) {
       for(var order_id in this.data.orders[uid]) {
 
@@ -276,7 +273,6 @@ function Db(cloud_storage) {
         }
 
         var order = this.data.orders[uid][order_id];
-        var found = false;
 
         for(var i = 0;i<order.items.length;i++) {
 
@@ -293,6 +289,7 @@ function Db(cloud_storage) {
             };
 
           }
+          num_orders += 1;
         }
  
       }
@@ -304,7 +301,7 @@ function Db(cloud_storage) {
       new_items.push(items[key]);
     }
     
-    return new_items;
+    return {items: new_items, num_orders: num_orders};
   }
  
   this.getOrdersForCommunity = function(community, order_id) {

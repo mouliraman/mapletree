@@ -217,12 +217,9 @@ server.route({
   method: 'GET',
   path: '/data/orders/used_inventory/{start_date}/{end_date}.{format}',
   handler: (req, reply) => {
-      var inv = db.getInventoryUsage(req.params.start_date, req.params.end_date);
-      var resp = {
-        items: inv,
-        start_date: req.params.start_date,
-        end_date: req.params.end_date
-      };
+    var resp = db.getInventoryUsage(req.params.start_date, req.params.end_date);
+    resp.start_date = req.params.start_date;
+    resp.end_date = req.params.end_date;
     if (req.params.format == 'json') {
       return reply(resp);
     } else {

@@ -1,4 +1,4 @@
-S.No,Description,Category,Rate,Unit,Duration,Cumulative Quantity
+S.No,Description,Category,Rate,Unit,Duration,Cumulative Quantity,Total Orders
 {{#each items}}
-{{inc @index}},"{{description}}",{{category}},{{rate}},{{unit}},{{../start_date}} - {{../end_date}},{{quantity}}
+{{inc @index}},"{{description}}",{{category}},{{rate}},{{unit}},{{../start_date}} - {{../end_date}},{{quantity}},{{../num_orders}}
 {{/each}}
