@@ -20,7 +20,8 @@
     <script src="/js/app.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-
+    <script src="https://cdn.ravenjs.com/3.8.1/angular/raven.min.js" crossorigin="anonymous"></script>
+    <script>Raven.config('https://cce08483111b428d91ca03d0897ee868@sentry.io/111060').install();</script>
   </head>
 
   <body class="ng-cloak">
@@ -184,7 +185,7 @@
                 </tfoot>
               </table>
 
-              <h4>DELIVERY INSTRUCTIOS</h4>
+              <h4>DELIVERY INSTRUCTIONS</h4>
               <textarea ng-model="order.customer_instructions" class="form-control" rows="3"></textarea>
 
               <a href="#" ng-if="(current_order().length > 0)" class="btn btn-success pull-right" ng-click="submitOrder()">
@@ -212,7 +213,7 @@
                 <tbody>
                   <tr ng-repeat="order in order_history">
                     <td>{{order.date}}</td>
-                    <td><a target="popup" href="/data/invoice/{{current_user.id}}/{{order.date}}">{{order.invoice_id}}</a></td>
+                    <td><a target="popup" href="/data/invoice/{{current_user._id}}/{{order.date}}">{{order._id}}</a></td>
                     <td><span class="label" ng-class="(order.state == 'delivered') ? 'label-success': 'label-info'">{{order.state}}</span></td>
                     <td>&#8377; {{order.discount_price}}</td>
                   </tr>

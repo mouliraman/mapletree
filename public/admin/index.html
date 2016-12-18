@@ -22,6 +22,8 @@
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
     <script src="/js/app.min.js"></script>
+    <script src="https://cdn.ravenjs.com/3.8.1/angular/raven.min.js" crossorigin="anonymous"></script>
+    <script>Raven.config('https://cce08483111b428d91ca03d0897ee868@sentry.io/111060').install();</script>
  
   </head>
 
@@ -121,7 +123,7 @@
               </thead>
               <tbody>
                 <tr ng-repeat="item in inventory_usage.items">
-                  <td>{{item['s.no']}}</td>
+                  <td>{{item.s_no}}</td>
                   <td>{{item.description}}</td>
                   <td>{{item.category}}</td>
                   <td>{{item.quantity}}</td>
@@ -298,7 +300,7 @@
                     <input type="text" ng-model="row.door_number" ng-change="saveUserInfo(row)"/>
                   </td>
                   <td>
-                    <span ng-show="spin[row.id]" class="glyphicon glyphicon-refresh spinning"></span>
+                    <span ng-show="spin[row._id]" class="glyphicon glyphicon-refresh spinning"></span>
                   </td>
                 </tr>
               </tbody>

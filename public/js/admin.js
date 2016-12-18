@@ -67,7 +67,7 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
         $scope.users = response.users;
         $scope.user_id_mapping = {};
         for(var i = 0;i<$scope.users.length;i++) {
-          $scope.user_id_mapping[$scope.users[i].id] = $scope.users[i];
+          $scope.user_id_mapping[$scope.users[i]._id] = $scope.users[i];
         }
         $scope.getUsersPerCommunity();
       }
@@ -149,11 +149,11 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
       }
 
       $scope.saveUserInfo = function(user) {
-        $scope.spin[user.id] = true;
-        $http.post('/users/' + user.id + '.json', user).success(function (c){
-          $scope.spin[user.id] = false;
+        $scope.spin[user._id] = true;
+        $http.post('/users/' + user._id + '.json', user).success(function (c){
+          $scope.spin[user._id] = false;
         }).error(function(err) {
-          $scope.spin[user.id] = false;
+          $scope.spin[user._id] = false;
         });
         console.log('saving user ' + user.email + ' door number ' + user.door_number);
       }

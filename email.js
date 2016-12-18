@@ -1,3 +1,6 @@
+var Order = require('./order');
+var User = require('./user');
+
 function Email(api_key) {
   var domain = 'revu.in';
   var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
@@ -5,37 +8,40 @@ function Email(api_key) {
   this.daily_email = (db) => {
 
     var today = new Date();
+    var communities = Order.getCommunities();
+
     var today_weekday = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][today.getDay()];
     console.log('searching for communities for ' + today_weekday);
-    for (var i=0;i<db.data.users.length;i++) {
-      var user = db.data.users[i];
-      community = db.communities[user.community];
-      if (community) {
-        var message = {
-          from: 'Mapletree Farms <no-reply@revu.in>',
-          to: user.email,
-        }
-        var today_order_id = [today.getFullYear(), today.getMonth()+1, today.getDate()].join('-');
+    User.find().exec().then(function(users) {
+      for (var i=0;i<users.length;i++) {
+        var user = users[i];
+        community = communities[user.community];
+        if (community) {
+          var message = {
+            from: 'Mapletree Farms <no-reply@revu.in>',
+            to: user.email,
+          }
+          var today_order_id = [today.getFullYear(), today.getMonth()+1, today.getDate()].join('-');
 
-        if (community.start_day == today_weekday) {
-          console.log('sending start window email to ' + user.name + ' for community ' + community.name);
-          message.subject = '[Mapletree Farms] Place your weekly order';
+          if (community.start_day == today_weekday) {
+            console.log('sending start window email to ' + user.name + ' for community ' + community.name);
+            message.subject = '[Mapletree Farms] Place your weekly order';
 
-          message.text = `Good Morning ${user.name},
+            message.text = `Good Morning ${user.name},
 
 This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.
 Head over to http://mpt.revu.in and place your order in a jiffy
-Your ordering window will close tomorrow.
 
-Cheers\n";
+Cheers
 -Shankar, your farmer @Mapletree
 `;
-        } else if ((community.end_day == today_weekday) &&             // today is end day of the community
-                   (!db.data.orders[user.id][today_order_id])) {       // user does not have order id for today
-          console.log('sending end window email to ' + user.name + ' for community ' + community.name);
-          message.subject = '[Mapletree Farms] Your order window closes today';
+          } else if (community.end_day == today_weekday) {             // today is end day of the community
+            Order.find({user: user._id, date: today_order_id}).count().exec().then(function(c) {
+              if (c == 0) { // user does not have order id for today
+                console.log('sending end window email to ' + user.name + ' for community ' + community.name);
+                message.subject = '[Mapletree Farms] Your order window closes today';
 
-          message.text = `Good Morning ${user.name},
+                message.text = `Good Morning ${user.name},
 
 This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.
 Your ordering window closes today at 12PM.
@@ -44,20 +50,23 @@ Head over to http://mpt.revu.in and place your order before your window closes
 Cheers
 -Shankar, your farmer @Mapletree
 `
-        }
+              }
+            });
+          }
 
-        if (message.text) {
-          console.log('sending email to ' + message.to + ' sub: ' + message.subject);
-          mailgun.messages().send(message, function (error, body) {
-            if (error) {
-              console.log('email:error: failed to send email ' + error);
-            }
-          });
+          if (message.text) {
+            console.log('sending email to ' + message.to + ' sub: ' + message.subject);
+            mailgun.messages().send(message, function (error, body) {
+              if (error) {
+                console.log('email:error: failed to send email ' + error);
+              }
+            });
+          }
+        } else {
+          console.log('no community for ' + user.name + ' community ' + user.community);
         }
-      } else {
-        console.log('no community for ' + user.name + ' community ' + user.community);
       }
-    }
+    });
 
   }
 

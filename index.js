@@ -8,7 +8,11 @@ const Good = require('good');
 const Joi = require('joi');
 const exec = require('child_process').exec;
 
-const Db = require('./db');
+const mongoose = require('mongoose');
+mongoose.Promise = require('bluebird');
+const User = require('./user');
+const Order = require('./order');
+
 const Email = require('./email');
 
 // Create a server with a host and port
@@ -26,11 +30,11 @@ const server = new Hapi.Server({
 
 server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
 
-const db = new Db();
 if (!process.env.MAILGUN_KEY) {
   throw('Please provide MAILGUN_KEY as env variable');
 }
 const email = new Email(process.env.MAILGUN_KEY);
+mongoose.connect('mongodb://localhost/mpt');
 
 // get profile information about the user
 server.route({
@@ -38,14 +42,18 @@ server.route({
   path:'/users/{uid}.json',
   handler: (req, reply) => {
     if (req.params.uid == 'all') {
-      reply({status: 'success', users: db.data.users});
+      User.find().lean().exec().then(function (users) {
+        reply({status: 'success', users: users});
+      });
     } else {
-      var u = db.getUserById(req.params.uid);
-      if (u) {
-        reply({status: 'success', profile: u});
-      } else {
-        reply({status: 'failed', reason: 'not found'});
-      }
+      User.findById(parseInt(req.params.uid)).lean().exec().then(function(user) {
+        if (user) {
+          reply({status: 'success', profile: user});
+        } else {
+          server.log('error', 'user with the id not found: ' + req.params.uid);
+          reply({status: 'failed', reason: 'not found'});
+        }
+      });
     }
   }
 });
@@ -54,18 +62,26 @@ server.route({
   method: 'POST',
   path: '/forgot.json',
   handler: (req, reply) => {
-    var user = db.getUserByEmail(req.payload.email);
-    if (user) {
-      // generate a reset token and store it in db
-      db.resetUser(user);
+    User.findByEmail(req.payload.email).then(function (user) {
+
+      if (user) {
+        // generate a reset token and store it in db
+        return user.resetMe();
+      } else {
+        server.log('error','email does not exist. rejecting the promise');
+        return(Promise.reject('user with email ' + req.payload.email + ' does not exist'));
+      }
+    }).then(function (user) {
+
+      serever.log('info', 'sending email to ' + user.email);
       // send email to user with reset link
       email.send_reset_email(user);
+
       // send 200 OK response
       reply({status: 'success', message: 'We have sent an email to you with instructions on how to reset your password. Please check your email.'});
-    } else {
-      // send error response
-      return reply({statusCode: 404, error: 'Not Found', message: 'user with email ' + req.payload.email + ' is not found'}).code(404);
-    }
+    }, function (err) {
+      reply({statusCode: 404, error: 'Not Found', message: err}).code(404);
+    });
   },
   config: {
     validate: {
@@ -78,25 +94,47 @@ server.route({
 });
 
 server.route({
+  method: 'GET',
+  path: '/users/forgot/{token}',
+  handler: (req,reply) => {
+    User.findByToken(req.params.token).then(function(user) {
+      if (user) {
+        return reply.view('reset.html',user);
+      } else {
+        return reply({statusCode: 400, error: 'Bad Request', message: 'No user found with the given token'}).code(400);
+      }
+    });
+  }
+});
+
+server.route({
   method: 'POST',
   path: '/users/reset/{token}',
   handler: (req, reply) => {
-    var user = db.getUserByToken(req.params.token);
-    var error_message = null;
 
-    if (!user) {
-      error_message = 'user with token ' + req.params.token + ' is not found';
-    } else if (req.payload.password != req.payload.password_confirmation) {
-      error_message = 'password and password confirmation did not match';
-    }
+    User.findByToken(req.params.token).then(function(user) {
 
-    if (error_message) {
-      user.error_message = error_message;
-      return reply.view('reset.html',user);
-    }
+      if (user) {
+        if (req.payload.password != req.payload.password_confirmation) {
+          user.error_message = 'password and password confirmation did not match';
+          reply.view('reset.html',user);
+          return Promise.reject('password did not match');
+        } else {
+          return user.changePassword(req.payload.password);
+        }
 
-    db.changePassword(user,req.payload.password);
-    return reply({status: 'success'}).redirect('/');
+      } else {
+        reply({statusCode: 400, error: 'Bad Request', message: 'No user found with the given token'}).code(400);
+        return Promise.reject('user with given token not found');
+      }
+
+    }).then(function(user) {
+
+      return reply({status: 'success'}).redirect('/');
+    }, function (err) {
+      server.log('error','could not change the password ' + err);
+    });
+
   },
   config: {
     validate: {
@@ -114,13 +152,28 @@ server.route({
   method: 'POST',
   path:'/users/{uid}.json',
   handler: (req, reply) => {
-    db.updateUser(req.payload);
-    reply({status: 'success', profile: req.payload});
+
+    User.findById(req.payload._id).then(function(user) {
+      if (user) {
+        delete req.payload._id;
+        for (var key in req.payload) {
+          user[key] = req.payload[key];
+        }
+        return user.save();
+      } else {
+        return User.create(req.payload);
+      }
+    }, function (err) {
+      return reply({status: 'failed', reason: 'could not find user with give id'});
+    }).then(function(user) {
+      return reply({status: 'success', profile: user});
+    });
+
   },
   config: {
     validate: {
       payload: Joi.object({
-        id: Joi.number().required(),
+        _id: Joi.number().required(),
         name: Joi.string().required(),
         mobile: Joi.number().required(),
         email: Joi.string().required(),
@@ -130,18 +183,43 @@ server.route({
   }
 });
 
+// delete the user
+// TODO : Ensure that only admin is able to do this.
+server.route({
+  method: 'DELETE',
+  path:'/users/{uid}.json',
+  handler: (req, reply) => {
+
+    User.findById(req.params.uid).then(function(user) {
+      if (user) {
+        return user.remove();
+      } else {
+        return Promise.reject('user with id ' + req.params.uid + ' not found');
+      }
+    }).then(function(user) {
+      return reply({status: 'success'});
+    }, function(err) {
+      return reply({statusCode: 400, error: 'Bad Request', message: 'No user found with the given id'}).code(400);
+    });
+  }
+});
+ 
 // signup a user
 server.route({
   method: 'POST',
   path:'/register.json',
   handler: (req, reply) => {
-    var user = db.addUser(req.payload);
-    if (user) {
-      // TODO : Fire an email
+
+    User.addUser(req.payload).then(function(user) {
+
       return reply({status: 'success', profile: user});
-    } else {
+
+    }, function (err) {
+
+      server.log('error','register : error - ' + err);
       return reply({statusCode: 400, error: 'Bad Request', message: 'user with email ' + req.payload.email + ' is already registered'}).code(400);
-    }
+
+    });
   },
   config: {
     validate: {
@@ -161,12 +239,21 @@ server.route({
   path:'/login.json',
   handler: (req, reply) => {
 
-    var user = db.loginUser(req.payload.email, req.payload.password);
-    if (!user) {
-      return reply({statusCode: 400, error: "Bad Request", message: "user email and password don't match"}).code(400);
-    }
+    User.loginUser(req.payload.email, req.payload.password).then(function (user) {
 
-    return reply({status: 'success', profile: user});
+      if (user) {
+        return reply({status: 'success', profile: user});
+      } else {
+
+        return reply({statusCode: 400, error: "Bad Request", message: "user email and password don't match"}).code(400);
+      }
+
+    }, function (err) {
+
+      server.log('error', 'login: error - ' + err);
+
+    });
+
   },
   config: {
     validate: {
@@ -182,10 +269,51 @@ server.route({
   method: 'POST',
   path:'/data/orders/{order_id}.json',
   handler: (req, reply) => {
-    var user = db.getUserById(req.query.uid);
-    if (user) {
-      db.storeOrder(user.id, req.params.order_id, req.payload);
-      var order = db.getOrdersForUser(user.id, req.params.order_id);
+
+    var user_promise = User.findById(req.query.uid);
+    var order_promise = user_promise.then(function(user) {
+      if (user) {
+        return Order.getOrdersForUser(user._id, req.params.order_id).then(function(order) {
+          return Promise.resolve([user, order]);
+        })
+      } else {
+        Promise.reject('user id ' + req.query.uid + ' does not exist');
+      }
+    });
+
+    return order_promise.then(function(args) {
+      var user = args[0];
+      var order = args[1];
+      var next_promise;
+      if (order) {
+        for (var key in req.payload) {
+          order[key] = req.payload[key];
+        }
+        next_promise = order.save();
+      } else {
+        server.log('info','order not found. This is a new order');
+        req.payload.user = user._id;
+        req.payload.community = user.community;
+        req.payload.date = req.params.order_id;
+        next_promise = Order.create(req.payload);
+      }
+
+      return next_promise.then(function(order) {
+        if (order) {
+          server.log('info',order created/saved.');
+          return Promise.resolve([user,order]);
+        } else {
+          server.log('error','order creation/save failed');
+          return Promise.reject('order creation failed');
+        }
+      });
+
+    }, function (err) {
+      server.log('error', 'first ' + err);
+      reply({statusCode: 400, error: 'Bad Request', message: err}).code(400);
+    }).then(function(args) {
+      var user = args[0];
+      var order = args[1];
       order.discount_price = order.total_price - order.discount;
       if (!req.query.admin) {
         email.send_invoice(user, order, req.params.order_id);
@@ -194,9 +322,11 @@ server.route({
         email.send_final_invoice(user, order, req.params.order_id)
       }
       reply({status: 'success'});
-    } else {
-      reply({statusCode: 400, error: 'Bad Request', message: 'user id ' + req.query.uid + 'does not exist'}).code(400);
-    }
+    }, function(err) {
+      server.log('error','second ' + err);
+      reply({statusCode: 400, error: 'Bad Request', message: err}).code(400);      
+    });
+
   },
   config: {
     validate: {
@@ -217,14 +347,15 @@ server.route({
   method: 'GET',
   path: '/data/orders/used_inventory/{start_date}/{end_date}.{format}',
   handler: (req, reply) => {
-    var resp = db.getInventoryUsage(req.params.start_date, req.params.end_date);
-    resp.start_date = req.params.start_date;
-    resp.end_date = req.params.end_date;
-    if (req.params.format == 'json') {
-      return reply(resp);
-    } else {
-      reply.view('inventory.csv',resp);
-    }
+    return Order.getInventoryUsage(req.params.start_date, req.params.end_date).then(function (resp) {
+      resp.start_date = req.params.start_date;
+      resp.end_date = req.params.end_date;
+      if (req.params.format == 'json') {
+        return reply(resp);
+      } else {
+        reply.view('inventory.csv',resp);
+      }
+    });
   }
 });
 
@@ -233,12 +364,14 @@ server.route({
   path:'/data/orders/{uid}/index.json', 
   handler: (req, reply) => {
     var ret;
-    var user = db.getUserById(req.params.uid);
-    if (user) {
-      return reply({'order_history' : db.getAllOrdersForUser(user)});
-    } else {
-      return reply({statusCode: 400, error: 'User Not Found', message: 'user id does not exist'}).code(400);
-    }
+    return Order.getAllOrdersForUser(parseInt(req.params.uid)).then(function (orders) {
+      for(var i=0;i<orders.length;i++){
+        orders[i].discount_price = orders[i].total_price - orders[i].discount;
+      }
+      return reply({'order_history' : orders});
+    }, function (err) {
+      return reply({statusCode: 400, error: 'Not Found', message: err}).code(400);
+    });
   }
 });
 
@@ -247,18 +380,27 @@ server.route({
   method: 'GET', 
   path:'/data/orders/{order_id}.json', 
   handler: (req, reply) => {
-    var ret;
     if (req.query.uid) {
-      ret = db.getOrdersForUser(req.query.uid, req.params.order_id);
-      ret.uid = req.query.uid;
+      return Order.getOrdersForUser(parseInt(req.query.uid), req.params.order_id).then(function(order) {
+        if (!order) {
+          order = {items: [], total_price: 0, discount_price: 0};
+        }
+        order.uid = req.query.uid;
+        order.order_id = req.params.order_id;
+        return reply(order);
+      });
     } else if (req.query.community) {
-      ret = db.getOrdersForCommunity(req.query.community, req.params.order_id);
-      ret.community = req.query.community;
+      return Order.getOrdersForCommunity(req.params.order_id, req.query.community).then(function (resp) {
+        resp.community = req.query.community;
+        resp.order_id = req.params.order_id;
+        return reply(resp);
+      });
     } else {
-      ret = db.getOrdersForAll(req.params.order_id);
+      return Order.getOrdersForCommunity(req.params.order_id).then(function(resp) {
+        resp.order_id = req.params.order_id;
+        return reply(resp);
+      });
     }
-    ret.order_id = req.params.order_id;
-    return reply(ret);
   }
 });
 
@@ -275,38 +417,24 @@ server.route({
 
 server.route({
   method: 'GET',
-  path: '/users/forgot/{token}',
-  handler: (req,reply) => {
-    var user = db.getUserByToken(req.params.token);
-    if (!user) {
-      return reply({statusCode: 400, error: 'Bad Request', message: 'No user found with the given token'}).code(400);
-    }
-    reply.view('reset.html',user);
-  }
-});
-
-server.route({
-  method: 'GET',
   path:'/data/invoice/{uid}/{order_id}',
   handler: (req, reply) => {
-    var order = db.clone_order(db.getOrdersForUser(req.params.uid, req.params.order_id));
-    order.user = db.getUserById(req.params.uid);
-    order.date = req.params.order_id;
-    if (order.state != 'ordered') {
-      var new_items = [];
-      for(var i=0;i<order.items.length;i++) {
-        var new_item = db.clone_order(order.items[i]);
-        new_item.quantity = new_item.packed_quantity;
-        new_items.push(new_item);
+    Order.getOrdersForUser(parseInt(req.params.uid), req.params.order_id).then(function(order) {
+      if (order.state != 'ordered') {
+        for(var i=0;i<order.items.length;i++) {
+          order.items[i].quantity = order.items[i].packed_quantity;
+        }
       }
-      order.items = new_items;
-    }
-    for(var i=0;i<order.items.length;i++) {
-      order.items[i].price = order.items[i].quantity * order.items[i].rate;
-      order.items[i].price = Math.round(order.items[i].price * 100)/100;
-    }
-    order.discount_price = order.total_price - order.discount;
-    reply.view('invoice.html',order);
+      for(var i=0;i<order.items.length;i++) {
+        order.items[i].price = order.items[i].quantity * order.items[i].rate;
+        order.items[i].price = Math.round(order.items[i].price * 100)/100;
+      }
+      order.discount_price = order.total_price - order.discount;
+      reply.view('invoice.html',order);
+ 
+    }, function(err) {
+    });
+
   }
 });
 
@@ -314,7 +442,7 @@ server.route({
   method: 'POST',
   path: '/data/daily/email',
   handler: (req, reply) => {
-    email.daily_email(db);
+    // email.daily_email(); // TODO : Fixme
     return reply({statusCode: 200, status:  'success'});
   }
 });
@@ -365,7 +493,7 @@ if (process.env.SENTRY_DSN) {
     }
   });
 } else {
-  console.log('SENTRY_DSN not specified so not installing the sentry client');
+  server.log('error','SENTRY_DSN not specified so not installing the sentry client');
 }
 
 server.register({

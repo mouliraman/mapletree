@@ -22,10 +22,10 @@ angular.module('mapletreeUser', ['ngSanitize'])
        */
 
       $scope.onLogin = function(profile) {
-        localStorage.setItem('uid',profile.id);
-        console.log('setting uid ' + profile.id);
+        localStorage.setItem('uid',profile._id);
+        console.log('setting uid ' + profile._id);
         $scope.current_user = profile;
-        $http.get('/users/' + profile.id + '.json').success($scope.onProfle);
+        $http.get('/users/' + profile._id + '.json').success($scope.onProfle);
         $scope.app_loaded = false;
         $scope.shop_open = false;
         //$scope.$apply(function () {
@@ -100,14 +100,14 @@ angular.module('mapletreeUser', ['ngSanitize'])
         }
 
         // Get user order
-        $http.get('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id).success($scope.onUserOrders);
+        $http.get('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user._id).success($scope.onUserOrders);
 
       }
 
       $scope.onUserOrders = function (data) {
         $scope.order = data;
         for (var i = 0;i<data.items.length;i++) {
-          for (var j = 0;i<$scope.skus.length;j++) {
+          for (var j = 0;j<$scope.skus.length;j++) {
             if ($scope.skus[j].description == data.items[i].description) {
               $scope.skus[j].quantity = data.items[i].quantity;
               $scope.skus[j].price = data.items[i].price;
@@ -124,7 +124,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
           console.log('google logged in');
           var profile = response.getBasicProfile();
           if (!$scope.current_user) {
-            $scope.onLogin({id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()});
+            $scope.onLogin({_id: profile.getId(), name: profile.getName(), profile_url: profile.getImageUrl(), email: profile.getEmail()});
           }
         },
         'onfailure': function(response) {
@@ -170,7 +170,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
       $scope.registerUser = function() {
         $scope.ajax_waiting = true;
         $scope.error_message = null;
-        $http.post('/users/' + $scope.current_user.id + '.json', $scope.current_user).success($scope.onProfle).error(function (err) {
+        $http.post('/users/' + $scope.current_user._id + '.json', $scope.current_user).success($scope.onProfle).error(function (err) {
           console.log(err);
           $scope.error_message = err.message;
           $scope.ajax_waiting = false;
@@ -185,7 +185,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
         }
 
         if ($scope.nav == 'orders') {
-          $http.get('/data/orders/'+$scope.current_user.id+'/index.json').success( function (res) {
+          $http.get('/data/orders/'+$scope.current_user._id+'/index.json').success( function (res) {
             $scope.order_history = res.order_history;
             $scope.outstanding_balance = 0;
             for(var i=0;i<res.order_history.length;i++) {
@@ -207,7 +207,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
         return items;
       }
 
-      $scope.submitOrder = function() {
+      $scope.submitOrder = function(auto_save) {
         if ($scope.check_if_shop_is_open()) {
           $scope.ajax_waiting = true;
           var order = {
@@ -218,10 +218,16 @@ angular.module('mapletreeUser', ['ngSanitize'])
             discount: 0
           };
 
-          $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user.id, order).success(function () {
+          if (auto_save) {
+            order.state = 'auto-saved';
+          }
+
+          $http.post('/data/orders/' + $scope.order_id + '.json?uid=' + $scope.current_user._id, order).success(function () {
             $scope.warning_message = $scope.error_message = null;
-            $scope.success_message = "Congratulations !! Your order has been placed";
-            $scope.ajax_waiting = false;
+            if (!auto_save) {
+              $scope.success_message = "Congratulations !! Your order has been placed";
+              $scope.ajax_waiting = false;
+            }
           }).error(function (err) {
             $scope.error_message = err.message;
             $scope.ajax_waiting = false;
@@ -346,7 +352,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
       console.log('getting uid ' + uid);
       if ((uid) && (uid != 'undefined')) {
         $scope.noGoogle = true;
-        $scope.onLogin({id: uid});
+        $scope.onLogin({_id: uid});
       }
  
     }
