@@ -300,7 +300,7 @@ server.route({
 
       return next_promise.then(function(order) {
         if (order) {
-          server.log('info',order created/saved.');
+          server.log('info','order created/saved.');
           return Promise.resolve([user,order]);
         } else {
           server.log('error','order creation/save failed');
