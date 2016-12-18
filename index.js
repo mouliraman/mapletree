@@ -73,7 +73,7 @@ server.route({
       }
     }).then(function (user) {
 
-      serever.log('info', 'sending email to ' + user.email);
+      server.log('info', 'sending email to ' + user.email);
       // send email to user with reset link
       email.send_reset_email(user);
 
