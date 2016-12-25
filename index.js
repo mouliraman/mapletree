@@ -55,7 +55,7 @@ server.route({
             server.log('error', 'user with the id is blocked: ' + req.params.uid);
             reply({status: 'failed', reason: 'user blocked'});
           } else {
-            session = {
+            var session = {
               info: request.session.flash('info'),
               error: request.session.flash('error')
             }
@@ -546,7 +546,16 @@ server.route({
 });
 
 // Register session manager
-server.register(require('yar'), () => {});
+server.register([
+    {
+      register: require('yar'),
+      options: {
+        cookieOptions: {
+          password: 'random-password-string-to-encrypt-the-insecure-sessions'
+        }
+      }
+    }
+  ], () => {});
 
 const Handlebars = require('handlebars');
 Handlebars.registerHelper("inc", (value, options) => {
