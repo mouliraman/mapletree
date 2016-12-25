@@ -14,7 +14,8 @@
     "joi": "^9.0.4",
     "mailgun-js": "^0.7.12",
     "mongoose": "^4.6.8",
-    "vision": "^4.1.0"
+    "vision": "^4.1.0",
+    "yar": "^8.1.2"
   },
   "scripts": {
     "start": "node index.js"

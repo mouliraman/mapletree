@@ -40,6 +40,16 @@ angular.module('mapletreeUser', ['ngSanitize'])
           $scope.new_user = false;
         }
         $http.get('/data/communities.json').success($scope.onCommunityInformation);
+        if (data.session) {
+          if (data.session.info.length) {
+            $scope.warning_message = data.session.info;
+          } else {
+            $scope.warning_message = "You have been logged in."
+          }
+          if (data.session.error.length) {
+            $scope.error_message = data.session.error;
+          }
+        }
       }
 
       $scope.slug = function(a) {
@@ -343,6 +353,10 @@ angular.module('mapletreeUser', ['ngSanitize'])
       $scope.remove_float = function(item) {
         if ((item.unit.toLowerCase() == 'piece') || (item.unit.toLowerCase() == 'bunch')) {
           item.quantity = Math.floor(item.quantity);
+        }
+        // also submit the order
+        if (!$scope.ajax_waiting) {
+          $scope.submitOrder(true);
         }
       }
 

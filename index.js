@@ -55,7 +55,11 @@ server.route({
             server.log('error', 'user with the id is blocked: ' + req.params.uid);
             reply({status: 'failed', reason: 'user blocked'});
           } else {
-            reply({status: 'success', profile: user});
+            session = {
+              info: request.session.flash('info'),
+              error: request.session.flash('error')
+            }
+            reply({status: 'success', profile: user, session: session});
           }
         } else {
           server.log('error', 'user with the id not found: ' + req.params.uid);
@@ -488,22 +492,27 @@ server.route({
     server.log('info','callback from payment gateway : ' + req.params.status);
     server.log('info',req.payload);
     // TODO : send email to dev
-    var p = Order.findById(req.payload.invoice).populate('user').lean().exec();
+    var p = Order.findById(req.payload.invoice).populate('user').exec();
     p.then(function(order) {
       if (order) {
         order.payment_status = req.params.status;
         if (req.params.status == 'success') {
           order.paid_amount = parseFloat(req.payload.amount);
           order.state = 'paid';
+          order.save();  // TODO : Make sure you associate a promise callback here.
+          req.session.flash('info', 'Your payment is done. Thank you for making the payment.');
+
           // TODO : Send success mail to customer and shankar and accountant
         } else {
+          req.session.flash('error', 'The payment could not be completed.');
           // TODO : Send failure mail to customer.
         }
 
-        reply.view('payment.html',order);
       } else {
+        req.session.flash('error', 'This is rather embarrassing. We could not associate your payment with an order.');
         server.log('error','no order found with invoice-id ' + req.payload.invoice);
       }
+      return reply({status: 'success'}).redirect('/');
     });
   }
 });
@@ -531,6 +540,9 @@ server.route({
                }
   }
 });
+
+// Register session manager
+server.register(require('yar'), () => {});
 
 const Handlebars = require('handlebars');
 Handlebars.registerHelper("inc", (value, options) => {
