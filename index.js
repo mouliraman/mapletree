@@ -7,9 +7,12 @@ const Fs = require('fs');
 const Good = require('good');
 const Joi = require('joi');
 const exec = require('child_process').exec;
+const crypto = require('crypto');
 
 const mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
+
+global.config = require('./config');
 const User = require('./user');
 const Order = require('./order');
 
@@ -28,13 +31,13 @@ const server = new Hapi.Server({
   }
 });
 
-server.connection({ host: '0.0.0.0', port: process.env.PORT || 3000 });
-
 if (!process.env.MAILGUN_KEY) {
   throw('Please provide MAILGUN_KEY as env variable');
 }
 const email = new Email(process.env.MAILGUN_KEY);
-mongoose.connect('mongodb://localhost/mpt');
+
+mongoose.connect(global.config.db_url);
+server.connection({ host: '0.0.0.0', port: global.config.server_port });
 
 // get profile information about the user
 server.route({
@@ -48,7 +51,12 @@ server.route({
     } else {
       User.findById(parseInt(req.params.uid)).lean().exec().then(function(user) {
         if (user) {
-          reply({status: 'success', profile: user});
+          if (user.blocked) {
+            server.log('error', 'user with the id is blocked: ' + req.params.uid);
+            reply({status: 'failed', reason: 'user blocked'});
+          } else {
+            reply({status: 'success', profile: user});
+          }
         } else {
           server.log('error', 'user with the id not found: ' + req.params.uid);
           reply({status: 'failed', reason: 'not found'});
@@ -65,8 +73,13 @@ server.route({
     User.findByEmail(req.payload.email).then(function (user) {
 
       if (user) {
-        // generate a reset token and store it in db
-        return user.resetMe();
+        if (user.blocked) {
+          server.log('error', 'user is blocked. cannot reset the password');
+          return(Promise.reject('user with email ' + req.payload.email + ' is blocked'));
+        } else {
+          // generate a reset token and store it in db
+          return user.resetMe();
+        }
       } else {
         server.log('error','email does not exist. rejecting the promise');
         return(Promise.reject('user with email ' + req.payload.email + ' does not exist'));
@@ -99,7 +112,11 @@ server.route({
   handler: (req,reply) => {
     User.findByToken(req.params.token).then(function(user) {
       if (user) {
-        return reply.view('reset.html',user);
+        if (user.blocked) {
+          return reply({statusCode: 400, error: 'Bad Request', message: 'User is blocked. cannot reset password.'}).code(400);
+        } else {
+          return reply.view('reset.html',user);
+        }
       } else {
         return reply({statusCode: 400, error: 'Bad Request', message: 'No user found with the given token'}).code(400);
       }
@@ -119,6 +136,10 @@ server.route({
           user.error_message = 'password and password confirmation did not match';
           reply.view('reset.html',user);
           return Promise.reject('password did not match');
+        } else if (user.blocked) {
+          user.error_message = 'user is blocked';
+          reply.view('reset.html',user);
+          return Promise.reject('user is blocked');
         } else {
           return user.changePassword(req.payload.password);
         }
@@ -192,7 +213,9 @@ server.route({
 
     User.findById(req.params.uid).then(function(user) {
       if (user) {
-        return user.remove();
+        user.blocked = true;
+        return user.save();
+        //return user.remove();
       } else {
         return Promise.reject('user with id ' + req.params.uid + ' not found');
       }
@@ -242,7 +265,11 @@ server.route({
     User.loginUser(req.payload.email, req.payload.password).then(function (user) {
 
       if (user) {
-        return reply({status: 'success', profile: user});
+        if (user.blocked) {
+          return reply({statusCode: 400, error: "Bad Request", message: "Your account has been blocked by the admin."}).code(400);
+        } else {
+          return reply({status: 'success', profile: user});
+        }
       } else {
 
         return reply({statusCode: 400, error: "Bad Request", message: "user email and password don't match"}).code(400);
@@ -430,11 +457,54 @@ server.route({
         order.items[i].price = Math.round(order.items[i].price * 100)/100;
       }
       order.discount_price = order.total_price - order.discount;
+
+      if (order.state == 'delivered') {
+        order.merchant_id = global.config.merchant_id;
+        order.discount_price = parseFloat(order.total_price - order.discount).toFixed(2);
+
+        var sign = crypto.createSign('RSA-SHA512');
+        var signed_data = [global.config.pg_api_key, order.merchant_id, order.merchant_id, order._id, order.discount_price].join('#') + '#';
+        sign.update(signed_data);
+        order.sign = sign.sign(global.config.pg_private_key,'hex');
+        order.callback_url = global.config.pg_callback_url;
+        order.pg_url = global.config.pg_url;
+
+      }
+
       reply.view('invoice.html',order);
  
     }, function(err) {
+      server.log('error','invoice : ' + err);
     });
 
+  }
+});
+
+/* TODO : Make the below request authenticated */
+server.route({
+  method: 'POST',
+  path:'/data/payment/{status}',
+  handler: (req, reply) => {
+    server.log('info','callback from payment gateway : ' + req.params.status);
+    server.log('info',req.payload);
+    // TODO : send email to dev
+    var p = Order.findOne({invoice_id: req.payload.invoice}).populate('user').lean().exec();
+    p.then(function(order) {
+      if (order) {
+        order.payment_status = req.params.status;
+        if (req.params.status == 'success') {
+          order.paid_amount = parseFloat(req.payload.amount);
+          order.state = 'paid';
+          // TODO : Send success mail to customer and shankar and accountant
+        } else {
+          // TODO : Send failure mail to customer.
+        }
+
+        reply.view('payment.html',order);
+      } else {
+        server.log('error','no order found with order-id ' + req.payload.invoice);
+      }
+    });
   }
 });
 
@@ -465,6 +535,12 @@ server.route({
 const Handlebars = require('handlebars');
 Handlebars.registerHelper("inc", (value, options) => {
   return parseInt(value) + 1;
+});
+Handlebars.registerHelper('ifEqual', function(v1, v2, options) {
+  if(v1 == v2) {
+    return options.fn(this);
+  }
+  return options.inverse(this);
 });
 
 server.register(require('vision'), (err) => {
