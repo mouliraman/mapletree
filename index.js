@@ -554,7 +554,8 @@ server.register([
       register: require('yar'),
       options: {
         cookieOptions: {
-          password: 'random-password-string-to-encrypt-the-insecure-sessions'
+          password: 'random-password-string-to-encrypt-the-insecure-sessions',
+          isSecure: (process.env.MODE == 'production') ? true : false
         }
       }
     }
