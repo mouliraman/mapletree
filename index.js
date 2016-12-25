@@ -558,7 +558,7 @@ server.register([
         }
       }
     }
-  ], () => {});
+  ], (err) => {server.log('error','yar initialization failed ' + err)});
 
 const Handlebars = require('handlebars');
 Handlebars.registerHelper("inc", (value, options) => {
