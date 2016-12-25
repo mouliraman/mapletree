@@ -506,11 +506,18 @@ server.register({
         args: [{ log: '*', response: '*' }]
       }, {
         module: 'good-console'
-      }, 'stdout']/*,
+      }, 'stdout'],
       file: [{
+        module: 'good-squeeze',
+        name: 'Squeeze',
+        args: [{ log: '*', response: '*' }]
+      },{
+        module: 'good-squeeze',
+        name: 'SafeJson'
+      },{
         module: 'good-file',
         args: ['./log/hapi.log']
-      }]*/
+      }]
     }
   }
 }, (err) => {
