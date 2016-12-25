@@ -459,7 +459,7 @@ server.route({
       order.discount_price = order.total_price - order.discount;
 
       if (order.state == 'delivered') {
-        order.merchant_id = global.config.merchant_id;
+        order.merchant_id = global.config.pg_merchant_id;
         order.discount_price = parseFloat(order.total_price - order.discount).toFixed(2);
 
         var sign = crypto.createSign('RSA-SHA512');
