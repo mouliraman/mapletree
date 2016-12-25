@@ -70,7 +70,7 @@ Cheers
           }
 
           if (message.text) {
-            Email.send_email(message);
+            this.send_email(message);
           }
         } else {
           console.log('no community for ' + user.name + ' community ' + user.community);
@@ -95,7 +95,7 @@ Cheers
     message.text += "-Shankar, your farmer @Mapletree\n";
     message.text += "http://mpt.revu.in\n";
 
-    Email.send_email(message);
+    this.send_email(message);
 
   }
 
@@ -114,7 +114,7 @@ Cheers
     message.text += "Thanks\n";
     message.text += "-Mapletree Farms\n";
 
-    Email.send_email(message);
+    this.send_email(message);
   }
 
   this.welcome = (user) => {
@@ -133,7 +133,7 @@ Cheers
     message.text += "Thanks\n";
     message.text += "-Shankar, your farmer @Mapletree\n";
 
-    Email.send_email(message);
+    this.send_email(message);
   }
 
   this.send_final_invoice = (user, order, order_id) => {
@@ -177,7 +177,7 @@ India<br/>
 <p>Thanks</p>
 <p>-Mapletree Farms</p>`;
 
-    Email.send_email(message);
+    this.send_email(message);
 
   }
 
@@ -205,7 +205,7 @@ India<br/>
     message.html += "<p>Thanks</p>";
     message.html += "<p>-Mapletree Farms</p>";
 
-    Email.send_email(message);
+    this.send_email(message);
   }
   return this;
 }
