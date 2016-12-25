@@ -56,8 +56,8 @@ server.route({
             reply({status: 'failed', reason: 'user blocked'});
           } else {
             var session = {
-              info: request.session.flash('info'),
-              error: request.session.flash('error')
+              info: req.session.flash('info'),
+              error: req.session.flash('error')
             }
             if ((session.info.length == 0) && (session.error.length == 0)) {
               session.info = "You have been logged in."
