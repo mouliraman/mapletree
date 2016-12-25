@@ -85,11 +85,11 @@
             <p ng-bind-html="error_message"></p>
           </div>
 
-          <div ng-if="!error_message && warning_message" class="alert alert-warning">
+          <div ng-if="warning_message" class="alert alert-warning">
             <p ng-bind-html="warning_message"></p>
           </div>
 
-          <div ng-if="!error_message && !warning_message && success_message" class="alert alert-success">
+          <div ng-if="success_message" class="alert alert-success">
             <p ng-bind-html="success_message"></p>
           </div>
 
