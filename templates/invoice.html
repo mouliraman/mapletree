@@ -97,6 +97,24 @@
         </div>
 
       </div>
+      {{#ifEqual state 'delivered'}}
+      <form id="demo_form" method="post" action="{{pg_url}}">
+        <input type="hidden" placeholder="message name" name="msg_name" value='request_payment'>
+        <input type="hidden" placeholder="originator entity" name="id" value='{{merchant_id}}'>
+        <input type="hidden" placeholder="merchant id" name="merchant_id" value='{{merchant_id}}'>
+        <input type="hidden" placeholder="merchant display" name="merchant_display" value="Mapletree Farms">
+        <input type="hidden" placeholder="mobile no" name="mobile_no" value="+919845254603">
+        <input type="hidden" placeholder="invoice no" name="invoice" value="{{_id}}">
+        <input type="hidden" placeholder="invoice amount" name="invoice_amt" value="{{discount_price}}">
+        <input type="hidden" placeholder="total amount" name="amount" value="{{discount_price}}">
+        <input type="hidden" placeholder="callback url" name="callback_url" value="{{callback_url}}success">
+        <input type="hidden" placeholder="callback failure url" name="callback_failure_url" value="{{callback_url}}failure">
+        <input type="hidden" placeholder="signature" name="sign" value="{{sign}}">
+
+        <input type="submit" class="btn btn-lg btn-success" value="Make Payment">
+      </form>
+      {{/ifEqual}}
+
       <h4>CUSTOMER INSTRUCTIOS</h4>
       <p>{{customer_instructions}}</p>
 
