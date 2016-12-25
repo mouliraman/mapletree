@@ -56,8 +56,8 @@ server.route({
             reply({status: 'failed', reason: 'user blocked'});
           } else {
             var session = {
-              info: req.session.flash('info'),
-              error: req.session.flash('error')
+              info: req.yar.flash('info'),
+              error: req.yar.flash('error')
             }
             if ((session.info.length == 0) && (session.error.length == 0)) {
               session.info = "You have been logged in."
@@ -504,16 +504,16 @@ server.route({
           order.paid_amount = parseFloat(req.payload.amount);
           order.state = 'paid';
           order.save();  // TODO : Make sure you associate a promise callback here.
-          req.session.flash('info', 'Your payment is done. Thank you for making the payment.');
+          req.yar.flash('info', 'Your payment is done. Thank you for making the payment.');
 
           // TODO : Send success mail to customer and shankar and accountant
         } else {
-          req.session.flash('error', 'The payment could not be completed.');
+          req.yar.flash('error', 'The payment could not be completed.');
           // TODO : Send failure mail to customer.
         }
 
       } else {
-        req.session.flash('error', 'This is rather embarrassing. We could not associate your payment with an order.');
+        req.yar.flash('error', 'This is rather embarrassing. We could not associate your payment with an order.');
         server.log('error','no order found with invoice-id ' + req.payload.invoice);
       }
       return reply({status: 'success'}).redirect('/');
