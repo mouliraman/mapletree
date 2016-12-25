@@ -5,6 +5,21 @@ function Email(api_key) {
   var domain = 'revu.in';
   var mailgun = require('mailgun-js')({apiKey: api_key, domain: domain});
 
+  this.send_email = (message) => {
+    console.log('sending email to ' + message.to + ' sub: ' + message.subject);
+    if (process.env.MODE == 'production') {
+      mailgun.messages().send(message, function (error, body) {
+        if (error) {
+          console.log('email:error: failed to send email ' + error);
+        }
+      });
+    } else {
+      console.log('email body: ');
+      console.log(message.text);
+    }
+
+  }
+
   this.daily_email = (db) => {
 
     var today = new Date();
@@ -55,12 +70,7 @@ Cheers
           }
 
           if (message.text) {
-            console.log('sending email to ' + message.to + ' sub: ' + message.subject);
-            mailgun.messages().send(message, function (error, body) {
-              if (error) {
-                console.log('email:error: failed to send email ' + error);
-              }
-            });
+            Email.send_email(message);
           }
         } else {
           console.log('no community for ' + user.name + ' community ' + user.community);
@@ -85,11 +95,7 @@ Cheers
     message.text += "-Shankar, your farmer @Mapletree\n";
     message.text += "http://mpt.revu.in\n";
 
-    mailgun.messages().send(message, function (error, body) {
-      if (error) {
-        console.log('email:error: failed to send email ' + error);
-      }
-    });
+    Email.send_email(message);
 
   }
 
@@ -108,11 +114,7 @@ Cheers
     message.text += "Thanks\n";
     message.text += "-Mapletree Farms\n";
 
-    mailgun.messages().send(message, function (error, body) {
-      if (error) {
-        console.log('email:error: failed to send email ' + error);
-      }
-    });
+    Email.send_email(message);
   }
 
   this.welcome = (user) => {
@@ -131,11 +133,7 @@ Cheers
     message.text += "Thanks\n";
     message.text += "-Shankar, your farmer @Mapletree\n";
 
-    mailgun.messages().send(message, function (error, body) {
-      if (error) {
-        console.log('email:error: failed to send email ' + error);
-      }
-    });
+    Email.send_email(message);
   }
 
   this.send_final_invoice = (user, order, order_id) => {
@@ -179,11 +177,7 @@ India<br/>
 <p>Thanks</p>
 <p>-Mapletree Farms</p>`;
 
-    mailgun.messages().send(message, function (error, body) {
-      if (error) {
-        console.log('email:error: failed to send email ' + error);
-      }
-    });
+    Email.send_email(message);
 
   }
 
@@ -211,11 +205,7 @@ India<br/>
     message.html += "<p>Thanks</p>";
     message.html += "<p>-Mapletree Farms</p>";
 
-    mailgun.messages().send(message, function (error, body) {
-      if (error) {
-        console.log('email:error: failed to send email ' + error);
-      }
-    });
+    Email.send_email(message);
   }
   return this;
 }
