@@ -8,7 +8,7 @@
 
     <title>Mapletree Farms</title>
 
-    <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link data-require="bootstrap-css@3.2.0" data-semver="3.2.0" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/google-plus-signin.css" />
 
@@ -19,7 +19,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-sanitize.min.js"></script>
     <script src="/js/app.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="https://cdn.ravenjs.com/3.8.1/angular/raven.min.js" crossorigin="anonymous"></script>
     <script>Raven.config('https://cce08483111b428d91ca03d0897ee868@sentry.io/111060').install();</script>
   </head>
@@ -219,8 +219,13 @@
                   </tr>
                 </tbody>
                 <tfoot>
-                  <th colspan="3">Outstanding Balance</th>
-                  <th>&#8377; {{outstanding_balance}}</th>
+                  <tr>
+                    <th colspan="3">Outstanding Balance</th>
+                    <th>&#8377; {{outstanding_balance}}</th>
+                  </tr>
+                  <tr>
+                    <th colspan="4">Outstanding balance does not reflect the payment you have already made separately via Bank transfer or cheque payment. We will shortly integrate payment gateway and thereafter will have accurate information.</th>
+                  </tr>
                 </tfoot>
               </table>
 
