@@ -26,7 +26,7 @@ orderSchema.statics.getAllOrdersForUser = function(user_id) {
 }
 
 orderSchema.statics.getOrdersForUser = function(uid, order_id) {
-  return Order.findOne({user: uid, date: order_id}).populate('user').lean().exec();
+  return Order.findOne({user: uid, date: order_id}).populate('user').exec();
 }
 
 orderSchema.statics.getCommunities = function() {

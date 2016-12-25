@@ -446,7 +446,7 @@ server.route({
   method: 'GET',
   path:'/data/invoice/{uid}/{order_id}',
   handler: (req, reply) => {
-    Order.getOrdersForUser(parseInt(req.params.uid), req.params.order_id).then(function(order) {
+    Order.findOne({user: parseInt(req.params.uid), date: req.params.order_id}).populate('user').lean().exec().then(function(order) {
       if (order.state != 'ordered') {
         for(var i=0;i<order.items.length;i++) {
           order.items[i].quantity = order.items[i].packed_quantity;
