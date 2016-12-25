@@ -10,6 +10,7 @@ var userSchema = new Schema({
     profile_url: String,
     email: String,
     admin: Boolean,
+    blocked: Boolean,
     mobile: String,
     community: String,
     door_number: String,
