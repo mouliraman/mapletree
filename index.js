@@ -59,6 +59,10 @@ server.route({
               info: request.session.flash('info'),
               error: request.session.flash('error')
             }
+            if ((session.info.length == 0) && (session.error.length == 0)) {
+              session.info = "You have been logged in."
+            }
+
             reply({status: 'success', profile: user, session: session});
           }
         } else {

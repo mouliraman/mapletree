@@ -43,8 +43,6 @@ angular.module('mapletreeUser', ['ngSanitize'])
         if (data.session) {
           if (data.session.info.length) {
             $scope.warning_message = data.session.info;
-          } else {
-            $scope.warning_message = "You have been logged in."
           }
           if (data.session.error.length) {
             $scope.error_message = data.session.error;
