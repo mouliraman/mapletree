@@ -488,7 +488,7 @@ server.route({
     server.log('info','callback from payment gateway : ' + req.params.status);
     server.log('info',req.payload);
     // TODO : send email to dev
-    var p = Order.findOne({invoice_id: req.payload.invoice}).populate('user').lean().exec();
+    var p = Order.findById(req.payload.invoice).populate('user').lean().exec();
     p.then(function(order) {
       if (order) {
         order.payment_status = req.params.status;
@@ -502,7 +502,7 @@ server.route({
 
         reply.view('payment.html',order);
       } else {
-        server.log('error','no order found with order-id ' + req.payload.invoice);
+        server.log('error','no order found with invoice-id ' + req.payload.invoice);
       }
     });
   }
