@@ -144,12 +144,7 @@ Cheers
       subject: '[Mapletree Farms] Invoice - ' + user.name,
     }
 
-    var url;
-    if (process.env.PORT == 3000) {
-      url = "http://localhost:3000/data/invoice/" + user.id + "/" + order_id;
-    } else {
-      url = "http://mpt.revu.in/data/invoice/" + user.id + "/" + order_id;
-    }
+    var url = global.config.base_url + "/data/invoice/" + user.id + "/" + order_id;
     message.html = `<p>Dear ${user.name},</p>
 <p>Your order has been delivered and the final invoice is generated. The total bill for this invoice is Rs. ${order.discount_price}/-.</p>
 <p>You can view your invoice <a href=\"${url}\">here</a>.</p>
@@ -189,12 +184,8 @@ India<br/>
       subject: '[Mapletree Farms] Order Confirmation',
     }
 
-    var url;
-    if (process.env.PORT == 3000) {
-      url = "http://localhost:3000/data/invoice/" + user.id + "/" + order_id;
-    } else {
-      url = "http://mpt.revu.in/data/invoice/" + user.id + "/" + order_id;
-    }
+    var url = global.config.base_url + "/data/invoice/" + user.id + "/" + order_id;
+
     message.html = "<p>Dear " + user.name + ",</p>";
     message.html += "<p>Thank you for placing your organic and fresh veggies order at http://mpt.revu.in. We have received an order worth Rs. " + order.discount_price + "/-.</p>";
     message.html += "<p>You can view your current order <a href=\"" + url + "\">here</a>.\nYou can modify and submit the order any number of times before the end of your window. The last modified order will be taken for delivery.</p>";
