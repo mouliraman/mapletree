@@ -59,6 +59,8 @@ server.route({
               info: req.yar.flash('info'),
               error: req.yar.flash('error')
             }
+            server.log('info', 'session error flash : ' + session.error);
+            server.log('info', 'session info  flash : ' + session.info);
             if ((session.info.length == 0) && (session.error.length == 0)) {
               session.info = "You have been logged in."
             }
@@ -508,6 +510,7 @@ server.route({
 
           // TODO : Send success mail to customer and shankar and accountant
         } else {
+          server.log('error', 'The payment could not be completed.');
           req.yar.flash('error', 'The payment could not be completed.');
           // TODO : Send failure mail to customer.
         }
@@ -516,7 +519,7 @@ server.route({
         req.yar.flash('error', 'This is rather embarrassing. We could not associate your payment with an order.');
         server.log('error','no order found with invoice-id ' + req.payload.invoice);
       }
-      return reply({status: 'success'}).redirect('/');
+      return reply().redirect('/');
     });
   }
 });
