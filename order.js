@@ -16,7 +16,9 @@ var orderSchema = new Schema({
   user: {type: String, ref: 'User'},
   community: String,
   items: [Schema.Types.Mixed],
-  customer_instructions: String
+  customer_instructions: String,
+  paid_amount: Number,
+  payment_status: String
 });
 
 orderSchema.statics.getAllOrdersForUser = function(user_id) {
@@ -24,7 +26,7 @@ orderSchema.statics.getAllOrdersForUser = function(user_id) {
 }
 
 orderSchema.statics.getOrdersForUser = function(uid, order_id) {
-  return Order.findOne({user: uid, date: order_id}).populate('user').exec();
+  return Order.findOne({user: uid, date: order_id}).populate('user').lean().exec();
 }
 
 orderSchema.statics.getCommunities = function() {
