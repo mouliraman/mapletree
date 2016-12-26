@@ -77,7 +77,7 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan=4 rowspan=4></td>
+                <td colspan=4 rowspan=6></td>
               </tr>
               <tr>
                 <td style="text-align: right">Sub Total</td>
@@ -91,6 +91,16 @@
                 <td style="text-align: right"><strong>Total</strong></td>
                 <td><span class="cost"><strong>&#8377;{{discount_price}}</strong></span></td>
               </tr>
+              {{#ifEqual state 'paid'}}
+              <tr>
+                <td style="text-align: right"><strong>Paid Amount</strong></td>
+                <td><span class="cost"><strong>&#8377;{{paid_amount}}</strong></span></td>
+              </tr>
+              <tr>
+                <td style="text-align: right"><strong>Balance Amount</strong></td>
+                <td><span class="cost"><strong>&#8377;{{balance_amount}}</strong></span></td>
+              </tr>
+              {{/ifEqual}}
             </tfoot>
           </table>
 
@@ -111,20 +121,28 @@
         <input type="hidden" placeholder="callback failure url" name="callback_failure_url" value="{{callback_url}}failure">
         <input type="hidden" placeholder="signature" name="sign" value="{{sign}}">
 
-        <input type="submit" class="btn btn-lg btn-success" value="Make Payment">
+        <input style="float:right" type="submit" class="btn btn-lg btn-success" value="Make Payment">
       </form>
       {{/ifEqual}}
 
-      <h4>CUSTOMER INSTRUCTIOS</h4>
+      <h4>CUSTOMER INSTRUCTIONS</h4>
       <p>{{customer_instructions}}</p>
 
-      <p>Please make the payment online by transferring the amount using the following details</p>
+      {{#ifEqual state 'ordered'}}
+      <h4>PLEASE NOTE</h4>
+      <p>This is a provisional invoice. Once your order is delivered a new invoice will be generated. You will be able to make payment against that invoice.</p>
+      {{/ifEqual}}
+
+      {{#ifEqual state 'delivered'}}
+      <h4>PAYMENT OPTIONS</h4>
+      <p>You can make payment either online or offline. To make online payment, click on the <strong>Make Payment</strong> button above. To make offline payment transfer the amount using the following bank details.</p>
       <p><strong>Account Details :</strong></br>
       Mapletree Farms Pvt. Ltd.			</br>
       A/C No: 914020043283947			</br>
       Axis Bank	 Jayanagar Branch	 Bangalore	</br>
       IFSC Code: UTIB0000052			</br>
       </p>
+      {{/ifEqual}}
 
       <footer class="footer">
         <p class="pull-right">v1.0</p>

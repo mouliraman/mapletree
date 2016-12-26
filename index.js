@@ -401,7 +401,8 @@ server.route({
   path:'/data/orders/{uid}/index.json', 
   handler: (req, reply) => {
     var ret;
-    return Order.getAllOrdersForUser(parseInt(req.params.uid)).then(function (orders) {
+    var p = Order.find({user: parseInt(req.params.uid)}).select('date invoice_id state discount total_price discount_price paid_amount').limit(10).sort('-_id').lean().exec();
+    return p.then(function (orders) {
       for(var i=0;i<orders.length;i++){
         orders[i].discount_price = orders[i].total_price - orders[i].discount;
       }
@@ -479,6 +480,9 @@ server.route({
         order.callback_url = global.config.pg_callback_url;
         order.pg_url = global.config.pg_url;
 
+      }
+      if (order.state == 'paid') {
+        order.balance_amount = order.discount_price - order.paid_amount;
       }
 
       reply.view('invoice.html',order);

@@ -21,10 +21,6 @@ var orderSchema = new Schema({
   payment_status: String
 });
 
-orderSchema.statics.getAllOrdersForUser = function(user_id) {
-  return Order.find({user: user_id}).select('date invoice_id state discount total_price discount_price').lean().exec();
-}
-
 orderSchema.statics.getOrdersForUser = function(uid, order_id) {
   return Order.findOne({user: uid, date: order_id}).populate('user').exec();
 }
