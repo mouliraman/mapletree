@@ -1,0 +1,10 @@
+<p>Dear {{name}},</p>
+<p>Thank you for placing your organic and fresh veggies order at {{base_url}}. We have received an order worth Rs. {{discount_price}}/-.</p>
+<p>You can view your current order <a href="{{url}}">here</a>.</p>
+<p>You can modify and submit the order any number of times before the end of your window. The last modified order will be taken for delivery.</p>
+{{#if customer_instructions}}
+  <p>Following is the instructions you have provided along with the order.<p>
+  <p>{{customer_instructions}}</p>
+{{/if}}
+<p>Thanks</p>
+<p>-Mapletree Farms</p>
