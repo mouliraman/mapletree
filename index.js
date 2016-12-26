@@ -353,10 +353,10 @@ server.route({
       var order = args[1];
       order.discount_price = order.total_price - order.discount;
       if (!req.query.admin) {
-        email.send_invoice(user, order, req.params.order_id);
+        email.send_invoice(user, order);
       }
       if (order.state == 'delivered') {
-        email.send_final_invoice(user, order, req.params.order_id)
+        email.send_final_invoice(user, order)
       }
       reply({status: 'success'});
     }, function(err) {
