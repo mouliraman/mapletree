@@ -115,6 +115,7 @@ Cheers
     }
 
     var template = Handlebars.compile(Fs.readFileSync('email_templates/send_reset_email.html').toString());
+    user.reset_url = global.config.base_url + "users/forgot/" + user.reset_token;
     message.html = template(user);
 
     this.send_email(message);
@@ -131,7 +132,7 @@ Cheers
     var communities = Order.getCommunities();
     var template = Handlebars.compile(Fs.readFileSync('email_templates/welcome.html').toString());
     var data = {
-      name: user.name,
+      name: user.name, base_url: global.config.base_url,
       community: communities[user.community]
     };
     message.html = template(data);
@@ -153,7 +154,7 @@ Cheers
     var data = {
       name: user.name,
       discount_price: discount_price,
-      url: url,
+      url: url, base_url: global.config.base_url,
     };
     message.html = template(data);
 
@@ -175,7 +176,7 @@ Cheers
     var data = {
       name: user.name,
       discount_price: discount_price,
-      url: url,
+      url: url, base_url: global.config.base_url,
       customer_instructions: order.customer_instructions
     };
     message.html = template(data);

@@ -3,6 +3,7 @@ const Fs = require('fs');
 var config = {};
 
 if (process.MODE == 'production') {
+  config.base_url = 'https://mpt.revu.in/'
   config.db_url = 'mongodb://localhost/mpt';
   config.server_port = 3001;  
   config.pg_api_key = '020705UANE81HLMY52AXY945741653K';
@@ -11,6 +12,7 @@ if (process.MODE == 'production') {
   config.pg_url = "https://secure.fonepaisa.com/pg/pay";
   config.pg_callback_url = "https://mpt.revu.in/data/payment/";
 } else {
+  config.base_url = 'http://mpt.revu.in:3000/'
   config.db_url = 'mongodb://localhost/mpt_dev';
   config.server_port = 3000;  
   config.pg_api_key = '08Z1782051U62BY9OUGW4XM67GF2004';
