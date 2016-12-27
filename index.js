@@ -516,7 +516,6 @@ server.route({
 
           // TODO : Send success mail to customer and shankar and accountant
         } else {
-          email.payment_failed(order, req.payload);
           return Promise.reject('The payment could not be completed.');
           // TODO : Send failure mail to customer.
         }
