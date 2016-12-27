@@ -323,7 +323,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
           // The shop will close today. Are you late?
           var end_time = $scope.get_time($scope.current_community.end_time);
           if (end_time < new Date()) {
-            $scope.error_message = "The shopping window has closed for today.";
+            $scope.warning_message = "The shopping window has closed for today.";
           } else {
             $scope.warning_message = "The shopping window is closing today. Place order before " + $scope.current_community.end_time ;
             $scope.shop_open = true;
@@ -340,7 +340,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
           } else {
             var x = new Date();
             x.setDate(x.getDate() + ((7 + open_day_index - x.getDay()) % 7));
-            $scope.error_message = "Your window to place order is not open.</br>You can come back at <b>" + $scope.current_community.start_time + "</b> on <b>" + x.toString().split(' ').slice(0,3).join(' ') + "</b> to place the order.";
+            $scope.warning_message = "Your window to place order is not open.</br>You can come back at <b>" + $scope.current_community.start_time + "</b> on <b>" + x.toString().split(' ').slice(0,3).join(' ') + "</b> to place the order.";
             // Sorry. You need to wait for couple of days
           }
         }
