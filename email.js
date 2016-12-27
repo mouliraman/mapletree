@@ -183,6 +183,48 @@ Cheers
 
     this.send_email(message);
   }
+
+  this.payment_status = (status, order, params) => {
+    // Send mail to dev guy
+    var message = {
+      from: 'Mapletree Farms <no-reply@revu.in>',
+      to: 'mayanks@gmail.com',
+      subject: '[Mapletree Farms] Payment - ' + status,
+    }
+
+    message.html = "<p>" + JSON.stringify(params) + "</p>";
+    message.html = "<p>" + JSON.stringify(order.user) + "</p>";
+
+    this.send_email(message);
+
+  }
+  this.payment = (status, order, params) => {
+    // Send mail to customer and Shankar
+    var message = {
+      from: 'Mapletree Farms <no-reply@revu.in>',
+      to: order.user.email,
+      subject: '[Mapletree Farms] Payment Failed',
+    }
+
+    var url = global.config.base_url + "data/invoice/" + order.user.id + "/" + order.date;
+    var template = Handlebars.compile(Fs.readFileSync('email_templates/payment_' + status + '.html').toString());
+
+    if (status == 'success') {
+      message.cc = "mapletreefarm16@gmail.com, mayanks@gmail.com, shankarv.dsl@gmail.com";
+      message.subject = '[Mapletree Farms] Payment Confirmation';
+    }
+
+    var data = {
+      name: order.user.name,
+      amount: params.amount,
+      invoice_id: order._id,
+      url: url, base_url: global.config.base_url,
+    };
+    message.html = template(data);
+
+    this.send_email(message);
+  }
+
   return this;
 }
 

@@ -479,6 +479,7 @@ server.route({
         order.sign = sign.sign(global.config.pg_private_key,'hex');
         order.callback_url = global.config.pg_callback_url;
         order.pg_url = global.config.pg_url;
+        order.mobile = order.user.mobile;
 
       }
       if (order.state == 'paid') {
@@ -501,28 +502,34 @@ server.route({
   handler: (req, reply) => {
     server.log('info','callback from payment gateway : ' + req.params.status);
     server.log('info',req.payload);
-    // TODO : send email to dev
+    email.payment_status(req.params.status, order, req.payload);
+
     var p = Order.findById(req.payload.invoice).populate('user').exec();
     p.then(function(order) {
       if (order) {
         order.payment_status = req.params.status;
+        email.payment(req.params.status, order, req.payload);
         if (req.params.status == 'success') {
           order.paid_amount = parseFloat(req.payload.amount);
           order.state = 'paid';
-          order.save();  // TODO : Make sure you associate a promise callback here.
-          req.yar.flash('info', 'Your payment is done. Thank you for making the payment.');
+          return order.save();  // TODO : Make sure you associate a promise callback here.
 
           // TODO : Send success mail to customer and shankar and accountant
         } else {
-          server.log('error', 'The payment could not be completed.');
-          req.yar.flash('error', 'The payment could not be completed.');
+          email.payment_failed(order, req.payload);
+          return Promise.reject('The payment could not be completed.');
           // TODO : Send failure mail to customer.
         }
 
       } else {
-        req.yar.flash('error', 'This is rather embarrassing. We could not associate your payment with an order.');
-        server.log('error','no order found with invoice-id ' + req.payload.invoice);
+        return Promise.reject('This is rather embarrassing. We could not associate your payment with an order.');
       }
+    }).then(function (order) {
+      req.yar.flash('info', 'Your payment is done. Thank you for making the payment.');
+      return reply().redirect('/');
+    }, function (err) {
+      req.yar.flash('error', err);
+      server.log('error', 'payment gateway error : ' + err);
       return reply().redirect('/');
     });
   }
