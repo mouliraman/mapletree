@@ -193,7 +193,11 @@ Cheers
     }
 
     message.html = "<p>" + JSON.stringify(params) + "</p>";
-    message.html = "<p>" + JSON.stringify(order.user) + "</p>";
+    if (order){
+      message.html = "<p>" + JSON.stringify(order.user) + "</p>";
+    } else {
+      message.html = "<p>No order found against the invoice id</p>";
+    }
 
     this.send_email(message);
 

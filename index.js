@@ -502,10 +502,10 @@ server.route({
   handler: (req, reply) => {
     server.log('info','callback from payment gateway : ' + req.params.status);
     server.log('info',req.payload);
-    email.payment_status(req.params.status, order, req.payload);
 
     var p = Order.findById(req.payload.invoice).populate('user').exec();
     p.then(function(order) {
+      email.payment_status(req.params.status, order, req.payload);
       if (order) {
         order.payment_status = req.params.status;
         email.payment(req.params.status, order, req.payload);
