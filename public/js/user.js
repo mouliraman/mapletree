@@ -42,7 +42,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
         $http.get('/data/communities.json').success($scope.onCommunityInformation);
         if (data.session) {
           if (data.session.info.length) {
-            $scope.warning_message = data.session.info;
+            $scope.success_message = data.session.info;
           }
           if (data.session.error.length) {
             $scope.error_message = data.session.error;
