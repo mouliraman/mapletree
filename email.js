@@ -10,7 +10,7 @@ function Email(api_key) {
 
   this.send_email = (message) => {
     console.log('sending email to ' + message.to + ' sub: ' + message.subject);
-    if (process.env.MODE == 'production') {
+    if (!global.config.fake_email) {
       mailgun.messages().send(message, function (error, body) {
         if (error) {
           console.log('email:error: failed to send email ' + error);
@@ -184,6 +184,20 @@ Cheers
     this.send_email(message);
   }
 
+  this.auto_save_apology = (user) => {
+   var message = {
+      from: 'Mapletree Farms <no-reply@revu.in>',
+      to: user.email,
+      subject: '[Mapletree Farms] Please complete your Order',
+    }
+
+    message.html = "<p>Dear " + user.name + ",<\p>\n";
+    message.html += "<p>Your order has been auto saved on Mapletree Website but it has not been submited. Can you please login to Mapletree website, visit the shopping card and submit the order. This will ensure we receive the order you intended and there is no mistake.</p>\n";
+    message.html += "<p>-Thanks</p>";
+    this.send_email(message);
+
+
+  }
   this.payment_status = (status, order, params) => {
     // Send mail to dev guy
     var message = {
