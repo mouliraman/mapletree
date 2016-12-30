@@ -353,9 +353,9 @@ angular.module('mapletreeUser', ['ngSanitize'])
           item.quantity = Math.floor(item.quantity);
         }
         // also submit the order
-        if (!$scope.ajax_waiting) {
-          $scope.submitOrder(true);
-        }
+        //if (!$scope.ajax_waiting) {
+        //  $scope.submitOrder(true);
+        //}
       }
 
 
