@@ -566,7 +566,7 @@ server.register([
       options: {
         cookieOptions: {
           password: 'random-password-string-to-encrypt-the-insecure-sessions',
-          isSecure: (process.env.MODE == 'production') ? true : false
+          isSecure: (process.env.NODE_ENV == 'production')
         }
       }
     }

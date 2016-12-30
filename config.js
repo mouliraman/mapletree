@@ -2,7 +2,8 @@ const Fs = require('fs');
 
 var config = {};
 
-if (process.MODE == 'production') {
+if (process.NODE_ENV == 'production') {
+  console.log('starting the application in production mode');
   config.base_url = 'https://mpt.revu.in/'
   config.db_url = 'mongodb://localhost/mpt';
   config.server_port = 3001;  
@@ -11,7 +12,9 @@ if (process.MODE == 'production') {
   config.pg_private_key = Fs.readFileSync('fp.private.key');
   config.pg_url = "https://secure.fonepaisa.com/pg/pay";
   config.pg_callback_url = "https://mpt.revu.in/data/payment/";
+  config.fake_email = false;
 } else {
+  console.log('starting the application in staging mode');
   config.base_url = 'http://mpt.revu.in:3000/'
   config.db_url = 'mongodb://localhost/mpt_dev';
   config.server_port = 3000;  
@@ -20,6 +23,7 @@ if (process.MODE == 'production') {
   config.pg_private_key = Fs.readFileSync('fp.test.key');
   config.pg_url = "https://test.fonepaisa.com/pg/pay";
   config.pg_callback_url = "http://mpt.revu.in:3000/data/payment/";
+  config.fake_email = true;
 }
 
 module.exports = config;
