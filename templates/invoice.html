@@ -135,13 +135,18 @@
 
       {{#ifEqual state 'delivered'}}
       <h4>PAYMENT OPTIONS</h4>
-      <p>You can make payment either online or offline. To make online payment, click on the <strong>Make Payment</strong> button above. To make offline payment transfer the amount using the following bank details. Please note that the account number contains your mobile number.</p>
-      <p><strong>Account Details :</strong></br>
-      Mapletree Farms Pvt. Ltd.			</br>
-      A/C No: ZORGANIC&lt;Mobile no of customer&gt; </br>
-      Indusind Bank, Basavangudi Branch, Bangalore  </br>
-      IFSC Code: INDB0000039</br>
-      </p>
+      <p>You can use one of the following payment options:</p>
+      <ol>
+        <li>NEFT Transfer to the following Beneficiary account (Note: This is a different account than Mapletree Farms account used earlier)</br>
+Mapletree Farms Pvt Ltd</br>
+IFSC Code : INDB0000039</br>
+Bank: Indusind Bank, Basavangudi Branch, Bangalore</br>
+Account Number No: ZORGANIC{{user.mobile}}</br>
+Please Note: The above is a virtual account number containing your mobile number. Change the above number to your mobile number if the above is incorrect</br>
+        </li>
+        <li>Using Credit Card, Debit Card or Wallets, by clicking the &quot;Make Payment&quot; button above. There will be additional 1.1 - 3% costs based on the payment method, to cover the third-party transaction costs.</li>
+
+      </ol>
       {{/ifEqual}}
 
       <footer class="footer">
