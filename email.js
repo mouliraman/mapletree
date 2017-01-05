@@ -153,6 +153,7 @@ Cheers
     var template = Handlebars.compile(Fs.readFileSync('email_templates/send_final_invoice.html').toString());
     var data = {
       name: user.name,
+      mobile: user.mobile,
       discount_price: discount_price,
       url: url, base_url: global.config.base_url,
     };
