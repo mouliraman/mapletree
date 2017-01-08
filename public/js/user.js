@@ -25,7 +25,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
         localStorage.setItem('uid',profile._id);
         console.log('setting uid ' + profile._id);
         $scope.current_user = profile;
-        $http.get('/users/' + profile._id + '.json').success($scope.onProfle);
+        $http.get('/users/' + profile._id + '.json').success($scope.onProfile);
         $scope.app_loaded = false;
         $scope.shop_open = false;
         //$scope.$apply(function () {
@@ -33,7 +33,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
         //});
       }
 
-     $scope.onProfle = function(data) {
+     $scope.onProfile = function(data) {
         $scope.ajax_waiting = false;
         if (data.status == 'success') {
           $scope.current_user = data.profile;
@@ -178,7 +178,7 @@ angular.module('mapletreeUser', ['ngSanitize'])
       $scope.registerUser = function() {
         $scope.ajax_waiting = true;
         $scope.error_message = null;
-        $http.post('/users/' + $scope.current_user._id + '.json', $scope.current_user).success($scope.onProfle).error(function (err) {
+        $http.post('/users/' + $scope.current_user._id + '.json', $scope.current_user).success($scope.onProfile).error(function (err) {
           console.log(err);
           $scope.error_message = err.message;
           $scope.ajax_waiting = false;
