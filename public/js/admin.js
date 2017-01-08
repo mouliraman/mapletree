@@ -157,6 +157,18 @@ angular.module('mapletreeAdmin', ['ngSanitize'])
         });
         console.log('saving user ' + user.email + ' door number ' + user.door_number);
       }
+
+      $scope.removeUser = function(user) {
+        $scope.spin[user._id] = true;
+        $http.delete('/users/' + user._id + '.json', user).success(function (c){
+          $scope.spin[user._id] = false;
+          user.blocked = true;
+        }).error(function(err) {
+          $scope.spin[user._id] = false;
+        });
+        console.log('blocking user ' + user.email);
+      }
+
       $scope.submitOrder = function(state) {
         $scope.ajax_waiting = true;
         $scope.order.state = state;

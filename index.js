@@ -53,7 +53,7 @@ server.route({
         if (user) {
           if (user.blocked) {
             server.log('error', 'user with the id is blocked: ' + req.params.uid);
-            reply({status: 'failed', reason: 'user blocked'});
+            reply({status: 'failed', reason: 'user blocked',statusCode: 400}).code(400);
           } else {
             var session = {
               info: req.yar.flash('info'),

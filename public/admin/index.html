@@ -286,18 +286,24 @@
                       </ul>
                     </div>
                   </th>
-                  <th colspan=2>Door No:</th>
+                  <th>Door No:</th>
+                  <th colspan=2></th>
                 </tr>
               </thead> 
               <tbody>
-                <tr ng-repeat="row in ((selected_community_index == -1) ? users : communities[selected_community_index].users)" ng-class="{success: row.admin}">
+                <tr ng-repeat="row in ((selected_community_index == -1) ? users : communities[selected_community_index].users)" ng-class="{success: row.admin, danger: row.blocked}">
                   <td>{{$index+1}} <!--<span ng-show="row.quantity > 0" class="glyphicon glyphicon-ok"></span>--></td>
-                  <td>{{row.name}}</td>
+                  <td>{{row.name}}<span ng-show="row.blocked"> (Blocked)</span></td>
                   <td>{{row.mobile}}</td>
                   <td>{{row.email}}</td>
                   <td>{{row.community}}</td>
                   <td>
                     <input type="text" ng-model="row.door_number" ng-change="saveUserInfo(row)"/>
+                  </td>
+                  <td>
+                    <a ng-if="!row.blocked && !row.admin" href="#" title="Block User" ng-click="removeUser(row)">
+                      <span style="color:red" class="glyphicon glyphicon-remove"></span>
+                    </a>
                   </td>
                   <td>
                     <span ng-show="spin[row._id]" class="glyphicon glyphicon-refresh spinning"></span>

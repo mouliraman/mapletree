@@ -25,7 +25,10 @@ angular.module('mapletreeUser', ['ngSanitize'])
         localStorage.setItem('uid',profile._id);
         console.log('setting uid ' + profile._id);
         $scope.current_user = profile;
-        $http.get('/users/' + profile._id + '.json').success($scope.onProfile);
+        $http.get('/users/' + profile._id + '.json').success($scope.onProfile).error(function(err) {
+          console.log('looks like user is blocked logging him out');
+          $scope.signOut();
+        });
         $scope.app_loaded = false;
         $scope.shop_open = false;
         //$scope.$apply(function () {
