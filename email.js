@@ -31,12 +31,17 @@ function Email(api_key) {
 
     var today = new Date();
     var communities = Order.getCommunities();
+    var self = this;
 
     var today_weekday = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][today.getDay()];
+    
     console.log('searching for communities for ' + today_weekday);
     User.find().exec().then(function(users) {
       for (var i=0;i<users.length;i++) {
         var user = users[i];
+        if (user.blocked) {
+          continue;
+        }
         community = communities[user.community];
         if (community) {
           var message = {
@@ -57,13 +62,20 @@ Head over to http://mpt.revu.in and place your order in a jiffy
 Cheers
 -Shankar, your farmer @Mapletree
 `;
-          } else if (community.end_day == today_weekday) {             // today is end day of the community
-            Order.find({user: user._id, date: today_order_id}).count().exec().then(function(c) {
-              if (c == 0) { // user does not have order id for today
-                console.log('sending end window email to ' + user.name + ' for community ' + community.name);
-                message.subject = '[Mapletree Farms] Your order window closes today';
+            self.send_email(message);
 
-                message.text = `Good Morning ${user.name},
+          } else if (community.end_day == today_weekday) {             // today is end day of the community
+
+            // closure to ensure the correct user is used in the outer for loop
+            (function(user) {
+
+              console.log('checking if ' + user.name + ' for community ' + community.name + ' has an order today.');
+              Order.find({user: user._id, date: today_order_id}).count().exec().then(function(c) {
+                if (c == 0) { // user does not have order id for today
+                  console.log('sending end window email to ' + user.name + '.');
+                  message.subject = '[Mapletree Farms] Your order window closes today';
+
+                  message.text = `Good Morning ${user.name},
 
 This is a gentle reminder for you to order your veggies, fruits and groceries from Mapletree Farms.
 Your ordering window closes today at 12PM.
@@ -72,13 +84,13 @@ Head over to http://mpt.revu.in and place your order before your window closes
 Cheers
 -Shankar, your farmer @Mapletree
 `
-              }
-            });
+                  self.send_email(message);
+                }
+              });
+              
+            })(user);
           }
 
-          if (message.text) {
-            this.send_email(message);
-          }
         } else {
           console.log('no community for ' + user.name + ' community ' + user.community);
         }

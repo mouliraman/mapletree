@@ -539,7 +539,7 @@ server.route({
   method: 'POST',
   path: '/data/daily/email',
   handler: (req, reply) => {
-    // email.daily_email(); // TODO : Fixme
+    email.daily_email(); // TODO : Fixme
     return reply({statusCode: 200, status:  'success'});
   }
 });
