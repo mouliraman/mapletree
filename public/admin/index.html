@@ -207,7 +207,7 @@
               </thead> 
               <tbody>
                 <tr ng-repeat="row in order.items" ng-class="{success: row.quantity == row.packed_quantity, danger: (row.packed_quantity > 0) && (row.quantity != row.packed_quantity)}">
-                  <td>{{$index+1}}</td>
+                  <td>{{row.s_no}}</td>
                   <td>{{row.description}}</td>
                   <td>{{row.rate}}</td>
                   <td>{{row.unit}}</td>
