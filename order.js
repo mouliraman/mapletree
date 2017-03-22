@@ -18,6 +18,7 @@ var orderSchema = new Schema({
   items: [Schema.Types.Mixed],
   customer_instructions: String,
   paid_amount: Number,
+  fee: Number,
   payment_status: String
 });
 
