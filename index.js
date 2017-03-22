@@ -506,12 +506,15 @@ server.route({
 
     var p = Order.findById(req.payload.invoice).populate('user').exec();
     p.then(function(order) {
-      email.payment_status(req.params.status, order, req.payload);
+      //email.payment_status(req.params.status, order, req.payload);
       if (order) {
         order.payment_status = req.params.status;
         email.payment(req.params.status, order, req.payload);
         if (req.params.status == 'success') {
           order.paid_amount = parseFloat(req.payload.amount);
+          if (req.payload.fee) {
+            order.fee = parseFloat(req.payload.fee);
+          }
           order.state = 'paid';
           return order.save();  // TODO : Make sure you associate a promise callback here.
 
