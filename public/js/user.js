@@ -100,6 +100,9 @@ angular.module('mapletreeUser', ['ngSanitize'])
           if ((d.description.length > 0) && (d.available.toLowerCase() == 'yes')) {
             d.quantity = 0;
             d.price = 0;
+            if (d.rate) {
+              d.rate = parseInt(d.rate);
+            }
             $scope.skus.push(d);
             if ($scope.category_skus[d.category]) {
               $scope.category_skus[d.category].push(d);
@@ -352,6 +355,9 @@ angular.module('mapletreeUser', ['ngSanitize'])
       }
 
       $scope.remove_float = function(item) {
+        if (item.quantity < 0) {
+          item.quantity = 0;
+        }
         if ((item.unit.toLowerCase() == 'piece') || (item.unit.toLowerCase() == 'bunch')) {
           item.quantity = Math.floor(item.quantity);
         }
