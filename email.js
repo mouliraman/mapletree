@@ -34,7 +34,7 @@ function Email(api_key) {
     var self = this;
 
     var today_weekday = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][today.getDay()];
-    
+
     console.log('searching for communities for ' + today_weekday);
     User.find().exec().then(function(users) {
       for (var i=0;i<users.length;i++) {
@@ -155,7 +155,7 @@ Cheers
    var message = {
       from: 'Mapletree Farms <no-reply@revu.in>',
       to: user.email,
-      cc: "mapletreefarm16@gmail.com",
+      cc: "mapletreefarm16@gmail.com, gayathri@innovationsmgnt.com,accounts@innovationsmgnt.com",
       subject: '[Mapletree Farms] Invoice - ' + user.name,
     }
 
@@ -241,7 +241,7 @@ Cheers
     var template = Handlebars.compile(Fs.readFileSync('email_templates/payment_' + status + '.html').toString());
 
     if (status == 'success') {
-      message.cc = "mapletreefarm16@gmail.com, mayanks@gmail.com, shankarv.dsl@gmail.com";
+      message.cc = "mapletreefarm16@gmail.com";
       message.subject = '[Mapletree Farms] Payment Confirmation';
     }
 
